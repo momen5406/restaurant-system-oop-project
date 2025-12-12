@@ -7,6 +7,7 @@ import util.FileManager;
 import java.util.ArrayList;
 
 public class AdminController {
+    // Employees Management
     // Add
     public void addEmployee(String id, String username, String password, String job, double salary) {
         ArrayList<User> users = FileManager.loadUsers();
