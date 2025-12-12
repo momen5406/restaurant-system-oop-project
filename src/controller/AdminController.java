@@ -101,7 +101,7 @@ public class AdminController {
                 if ( "Waiter".equalsIgnoreCase(e.getJobTitle()) ) waiters++;
             }
         }
-        return "REPORT: Restaurant has " + numberOfEmployees + " Employees, Total Salary: " + totalSalary + ", team consist of " + chefs  + " Chefs and " +  waiters + " Waiters";
+        return "REPORT: Restaurant has " + numberOfEmployees + " Employees, Total Salary: " + totalSalary + "EGP, team consist of " + chefs  + " Chefs and " +  waiters + " Waiters";
     }
 
     // Make special Offer
