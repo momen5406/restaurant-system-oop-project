@@ -1,3 +1,4 @@
 1,admin,admin123,ADMIN
 8,saad,saad123,EMPLOYEE,Waiter,5000.0
 5,momen,momen123,EMPLOYEE,Chef,6000.0
+8,sadky,sadky123,EMPLOYEE,waiter,2000.0

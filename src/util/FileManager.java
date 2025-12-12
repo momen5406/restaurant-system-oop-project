@@ -72,4 +72,11 @@ public class FileManager {
             System.out.println("Error saving offer: " + e.getMessage());
         }
     }
+
+
+    private static final String CUSTOMERS_FILE = "src/database/customers.txt";
+
+    // TODO: Load Customers Method
+
+    // TODO: Save Customers Method
 }
