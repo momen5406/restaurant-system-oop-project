@@ -205,7 +205,7 @@ public class AdminDashboard extends JFrame {
                 adminController.addOffer(offerId, offerName, discount);
 
                 refreshOfferTable();
-                clearFields();
+                clearOfferFields();
                 JOptionPane.showMessageDialog(this, "Offer Added!");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error: Check your inputs");
