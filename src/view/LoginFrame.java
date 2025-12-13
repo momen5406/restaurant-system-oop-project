@@ -86,7 +86,7 @@ public class LoginFrame {
             JOptionPane.showMessageDialog(this.frame, "Welcome " + user.getRole() + ": " + user.getUsername());
             if ( user.getRole().equals("ADMIN") ) {
                 this.frame.dispose();
-                new AdminDashboard();
+                new AdminDashboard(user);
             } else if (user.getRole().equals("EMPLOYEE")) {
                 // TODO: Open Employee Dashboard
                 System.out.println("Opening Employee Dashboard..");

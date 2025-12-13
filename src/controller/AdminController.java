@@ -104,6 +104,14 @@ public class AdminController {
         return "REPORT: Restaurant has " + numberOfEmployees + " Employees, Total Salary: " + totalSalary + "EGP, team consist of " + chefs  + " Chefs and " +  waiters + " Waiters";
     }
 
+    // TODO: Uncomment after finishing the loadCustomers method in FileManager.java
+//    public String CustomersReport() {
+//        ArrayList<Customer> customers = FileManager.loadCustomers();
+//        int total = customers.size();
+//
+//        return "REPORT: Total Registered Customers: " + total;
+//    }
+
     // Make special Offer
     public void createSpecialOffer(String offerName, double discount) {
         String message = "New Offer: " + offerName + " (" + discount + "% OFF)";

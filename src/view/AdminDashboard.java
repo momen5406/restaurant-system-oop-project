@@ -1,7 +1,9 @@
 package view;
 
 import controller.AdminController;
+import controller.UserController;
 import model.Employee;
+import model.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class AdminDashboard extends JFrame {
+    private User loggedInUser;
     private AdminController adminController;
     private JTabbedPane tabbedPane;
 
@@ -18,9 +21,10 @@ public class AdminDashboard extends JFrame {
     private DefaultTableModel tableModel;
     private JTextField nameField, jobField, salaryField, idField, passwordField;
 
-    public AdminDashboard() {
+    public AdminDashboard(User user) {
+        this.loggedInUser = user;
         adminController = new AdminController();
-        setTitle("Restaurant | Admin Dashboard");
+        setTitle("Restaurant | Admin Dashboard - Welcome " + user.getUsername());
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -30,6 +34,8 @@ public class AdminDashboard extends JFrame {
         tabbedPane.add("Manage Employees", createEmployeePanel());
         tabbedPane.add("Manage Meals", createMealPanel());
         tabbedPane.add("Reports", createReportPanel());
+        tabbedPane.add("Marketing", createMarketingPanel());
+        tabbedPane.add("My Profile", createProfilePanel());
 
         add(tabbedPane);
         setVisible(true);
@@ -136,18 +142,82 @@ public class AdminDashboard extends JFrame {
     private JPanel createReportPanel() {
         JPanel panel = new JPanel();
 
-        JButton generateButton = new JButton("Generate Employee Reports");
+        JButton genEmpReport = new JButton("Generate Employee Reports");
+        JButton genCustReport = new JButton("Generate Customers Reports");
         JTextArea reportArea = new JTextArea(10, 40);
         reportArea.setLineWrap(true);
 
-        generateButton.addActionListener(e -> {
+        genEmpReport.addActionListener(e -> {
             String report = adminController.EmployeesReport();
             reportArea.setText(report);
             reportArea.setFont(new Font("Arial", Font.BOLD, 18));
         });
 
-        panel.add(generateButton);
+        genCustReport.addActionListener(e -> {
+            // TODO: Change this EmployeesReport() to CustomersReport()
+            String report = adminController.EmployeesReport();
+            reportArea.setText(report);
+            reportArea.setFont(new Font("Arial", Font.BOLD, 18));
+        });
+
+        panel.add(genEmpReport);
+        panel.add(genCustReport);
         panel.add(new JScrollPane(reportArea));
+        return panel;
+    }
+
+    private JPanel createMarketingPanel() {
+        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+
+        JTextField offerNameField = new JTextField();
+        JTextField discountField = new JTextField();
+        JButton publishButton = new JButton("Publish Offer");
+
+        panel.add(new JLabel("Offer Name (e.g. 'Lunch Deal'):"));
+        panel.add(offerNameField);
+
+        panel.add(new JLabel("Discount % (e.g. 20):"));
+        panel.add(discountField);
+
+        panel.add(new JLabel(""));
+        panel.add(publishButton);
+
+        return panel;
+    }
+
+
+    private JPanel createProfilePanel() {
+        JPanel panel = new JPanel();
+
+        JLabel userLabel = new JLabel("New Username: ");
+        JTextField userField = new JTextField(10);
+        JLabel passwordLabel = new JLabel("New Password: ");
+        JPasswordField passwordField = new JPasswordField(10);
+        JButton updateButton = new JButton("Update my Info");
+
+        panel.add(userLabel);
+        panel.add(userField);
+        panel.add(passwordLabel);
+        panel.add(passwordField);
+        panel.add(updateButton);
+
+        updateButton.addActionListener(e -> {
+            String newUser = userField.getText();
+            String newPass = new String(passwordField.getPassword());
+
+            controller.UserController userCtrl = new controller.UserController();
+
+            boolean success = userCtrl.updateUserInfo(this.loggedInUser, newUser, newPass);
+
+            if ( success ) {
+                JOptionPane.showMessageDialog(this, "Profile Updated! Please login again.");
+                new LoginFrame().show();
+                this.dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error updating profile.");
+            }
+        });
+
         return panel;
     }
 }
