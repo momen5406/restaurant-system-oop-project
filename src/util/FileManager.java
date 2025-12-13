@@ -103,6 +103,26 @@ public class FileManager {
         }
     }
 
+    private static final String MARKETING_FILE = "src/database/marketing.txt";
+
+    public static void saveMarketingMessage(String message) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(MARKETING_FILE, true))) {
+            pw.println(message);
+        } catch (Exception e) {
+            System.out.println("Error Saving marketing: " + e.getMessage());
+        }
+    }
+
+    private static final String RULES_FILE = "src/database/loyalty_rules.txt";
+
+    public static void saveLoyaltyRules(int points, String rewardName) {
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(RULES_FILE))) {
+            pw.println(points + "," + rewardName);
+        } catch (Exception e) {
+            System.out.println("Error saving rules: " + e.getMessage());
+        }
+    }
+
 
     private static final String CUSTOMERS_FILE = "src/database/customers.txt";
 

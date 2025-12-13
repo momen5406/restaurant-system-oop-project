@@ -36,6 +36,7 @@ public class AdminDashboard extends JFrame {
         tabbedPane.add("Manage Employees", createEmployeePanel());
         tabbedPane.add("Manage Meals", createMealPanel());
         tabbedPane.add("Reports", createReportPanel());
+        tabbedPane.add("Special Offers", createOffersPanel());
         tabbedPane.add("Marketing", createMarketingPanel());
         tabbedPane.add("My Profile", createProfilePanel());
 
@@ -168,7 +169,7 @@ public class AdminDashboard extends JFrame {
         return panel;
     }
 
-    private JPanel createMarketingPanel() {
+    private JPanel createOffersPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
         String[] columns = {"Id", "Offer Name", "Discount"};
@@ -245,6 +246,50 @@ public class AdminDashboard extends JFrame {
     private void clearOfferFields() {
         offerNameField.setText("");
         discountField.setText("");
+    }
+
+    private JPanel createMarketingPanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10)); // Split into 3 sections
+
+        // Marketing News
+        JPanel newsPanel = new JPanel(new FlowLayout());
+        newsPanel.setBorder(BorderFactory.createTitledBorder("1. Send Marketing News"));
+        JTextField newsField = new JTextField(20);
+        JButton btnNews = new JButton("Send Broadcast");
+
+        newsPanel.add(new JLabel("Message:")); newsPanel.add(newsField);
+        newsPanel.add(btnNews);
+
+        // Loyalt Rules
+        JPanel loyaltyPanel = new JPanel(new FlowLayout());
+        loyaltyPanel.setBorder(BorderFactory.createTitledBorder("2. Loyalty & Reward Rules"));
+        JTextField pointsField = new JTextField(5);
+        JTextField rewardField = new JTextField(10);
+        JButton btnLoyalty = new JButton("Update Rules");
+
+        loyaltyPanel.add(new JLabel("Points Needed:")); loyaltyPanel.add(pointsField);
+        loyaltyPanel.add(new JLabel("Reward Prize:")); loyaltyPanel.add(rewardField);
+        loyaltyPanel.add(btnLoyalty);
+
+
+        // 1. Marketing News
+        btnNews.addActionListener(e -> {
+            adminController.sendMarketingMessage(newsField.getText());
+            JOptionPane.showMessageDialog(this, "News Sent to all Customers!");
+        });
+
+        // 2. Loyalty Rules
+        btnLoyalty.addActionListener(e -> {
+            int points = Integer.parseInt(pointsField.getText());
+            String prize = rewardField.getText();
+            adminController.setLoyaltyProgram(points, prize);
+            JOptionPane.showMessageDialog(this, "Loyalty Rules Updated!");
+        });
+
+        panel.add(newsPanel);
+        panel.add(loyaltyPanel);
+
+        return panel;
     }
 
 

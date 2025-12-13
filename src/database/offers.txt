@@ -1,2 +1,3 @@
 2,Lunch Deal,20%
 3,Fat Guys,50%
+4,Offers on Burgers,25%

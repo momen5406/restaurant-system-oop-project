@@ -81,8 +81,7 @@ public class AdminController {
         return null;
     }
 
-    // Offers
-    // Add
+    // Add Offer
     public void addOffer(String id, String offerName, String discount) {
         ArrayList<Offer> offers = FileManager.loadOffers();
         Offer newOffer = new Offer(id, offerName, discount);
@@ -90,7 +89,7 @@ public class AdminController {
         FileManager.saveOffers(offers);
     }
 
-    // Delete
+    // Delete Offer
     public void deleteOffer(String id) {
         ArrayList<Offer> offers = FileManager.loadOffers();
         boolean removed = offers.removeIf(offer -> offer.getId().equals(id));
@@ -101,6 +100,19 @@ public class AdminController {
         } else {
             System.out.println("Offer not found.");
         }
+    }
+
+    // Marketing Announcement
+    public void sendMarketingMessage(String message) {
+        String formattedMsg = "NEWS: " + message;
+        FileManager.saveMarketingMessage(formattedMsg);
+        System.out.println("Marketing Sent: " + formattedMsg);
+    }
+
+    // Loyalty and Reward Program
+    public void setLoyaltyProgram(int pointsNeeded, String rewardDescription) {
+        FileManager.saveLoyaltyRules(pointsNeeded, rewardDescription);
+        System.out.println("Loyalty Program Updated: Reach " + pointsNeeded + " points to get " + rewardDescription);
     }
 
     // TODO: MANAGE MEALS (ADD, DELETE, UPDATE, LIST, SEARCH) LIKE EMPLOYEES ☝️
