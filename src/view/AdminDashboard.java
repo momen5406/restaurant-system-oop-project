@@ -3,7 +3,9 @@ package view;
 import controller.AdminController;
 import controller.UserController;
 import model.Employee;
+import model.Offer;
 import model.User;
+import util.FileManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,9 +19,9 @@ public class AdminDashboard extends JFrame {
     private AdminController adminController;
     private JTabbedPane tabbedPane;
 
-    private JTable employeeTable;
-    private DefaultTableModel tableModel;
-    private JTextField nameField, jobField, salaryField, idField, passwordField;
+    private JTable employeeTable, offerTable;
+    private DefaultTableModel tableModel, offerTableModel;
+    private JTextField nameField, jobField, salaryField, idField, passwordField, offerIdField, offerNameField, discountField;
 
     public AdminDashboard(User user) {
         this.loggedInUser = user;
@@ -167,22 +169,82 @@ public class AdminDashboard extends JFrame {
     }
 
     private JPanel createMarketingPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout());
 
-        JTextField offerNameField = new JTextField();
-        JTextField discountField = new JTextField();
-        JButton publishButton = new JButton("Publish Offer");
+        String[] columns = {"Id", "Offer Name", "Discount"};
+        offerTableModel = new DefaultTableModel(columns, 0);
+        offerTable = new JTable(offerTableModel);
 
-        panel.add(new JLabel("Offer Name (e.g. 'Lunch Deal'):"));
-        panel.add(offerNameField);
+        refreshOfferTable();
+        panel.add(new JScrollPane(offerTable), BorderLayout.CENTER);
 
-        panel.add(new JLabel("Discount % (e.g. 20):"));
-        panel.add(discountField);
+        JPanel formPanel = new JPanel(new GridLayout(2, 1));
 
-        panel.add(new JLabel(""));
-        panel.add(publishButton);
+        offerIdField = new JTextField();
+        offerNameField = new JTextField();
+        discountField = new JTextField();
+
+        JButton addButton = new JButton("Add");
+        JButton deleteButton = new JButton("Delete");
+
+        // Add labels and fields to the form
+        formPanel.add(new JLabel("Offer Id:")); formPanel.add(offerIdField);
+        formPanel.add(new JLabel("Offer Name:")); formPanel.add(offerNameField);
+        formPanel.add(new JLabel("Discount:")); formPanel.add(discountField);
+        formPanel.add(addButton); formPanel.add(deleteButton);
+
+        panel.add(formPanel, BorderLayout.SOUTH);
+
+        addButton.addActionListener(e -> {
+            try {
+                String offerId = offerIdField.getText();
+                String offerName = offerNameField.getText();
+                String discount = discountField.getText() + "%";
+
+                adminController.addOffer(offerId, offerName, discount);
+
+                refreshOfferTable();
+                clearFields();
+                JOptionPane.showMessageDialog(this, "Offer Added!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: Check your inputs");
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            int selectedRow = offerTable.getSelectedRow();
+            if ( selectedRow != -1 ) {
+                String idToDelete = (String) offerTable.getValueAt(selectedRow, 0);
+                adminController.deleteOffer(idToDelete);
+                refreshOfferTable();
+                JOptionPane.showMessageDialog(this, "Offer Deleted!");
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a row to delete.");
+            }
+        });
 
         return panel;
+    }
+
+    private void refreshOfferTable() {
+        // Clear existing data
+        offerTableModel.setRowCount(0);
+
+        // Get fresh list from Controller
+        ArrayList<Offer> offers = FileManager.loadOffers();
+
+        ArrayList<Offer> offersList = new ArrayList<>(offers);
+
+        // Add rows to table
+        for (Offer o : offersList) {
+            Object[] row = {o.getId(), o.getName(), o.getDiscount()};
+            offerTableModel.addRow(row);
+        }
+    }
+
+    private void clearOfferFields() {
+        offerNameField.setText("");
+        discountField.setText("");
     }
 
 

@@ -2,6 +2,7 @@ package util;
 
 import model.Admin;
 import model.Employee;
+import model.Offer;
 import model.User;
 
 import java.io.*;
@@ -65,11 +66,40 @@ public class FileManager {
     // Save offers inside offers.txt
     private static final String OFFERS_FILE = "src/database/offers.txt";
 
-    public static void saveOffer(String offer) {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(OFFERS_FILE))) {
-            pw.println(offer);
+    public static ArrayList<Offer> loadOffers() {
+        ArrayList<Offer> offers = new ArrayList<>();
+        File file = new File(OFFERS_FILE);
+
+        if ( !file.exists() ) return offers;
+
+        try (Scanner input = new Scanner(file)) {
+            while ( input.hasNextLine() ) {
+                String line = input.nextLine();
+                String[] data = line.split(",");
+
+                String id = data[0];
+                String offerName = data[1];
+                String offerDiscount = data[2];
+
+                offers.add(new Offer(id, offerName, offerDiscount));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("File Not Found: " + e.getMessage());
+        }
+        return offers;
+    }
+
+    public static void saveOffers(ArrayList<Offer> offers) {
+        try {
+            PrintWriter pw = new PrintWriter(new FileWriter(OFFERS_FILE));
+
+            for ( Offer offer: offers ) {
+                String line = offer.getId() + "," + offer.getName() + "," + offer.getDiscount();
+                pw.println(line);
+            }
+            pw.close();
         } catch (IOException e) {
-            System.out.println("Error saving offer: " + e.getMessage());
+            System.out.println("Error saving file: " + e.getMessage());
         }
     }
 

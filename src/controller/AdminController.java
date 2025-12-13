@@ -1,6 +1,7 @@
 package controller;
 
 import model.Employee;
+import model.Offer;
 import model.User;
 import util.FileManager;
 
@@ -80,6 +81,28 @@ public class AdminController {
         return null;
     }
 
+    // Offers
+    // Add
+    public void addOffer(String id, String offerName, String discount) {
+        ArrayList<Offer> offers = FileManager.loadOffers();
+        Offer newOffer = new Offer(id, offerName, discount);
+        offers.add(newOffer);
+        FileManager.saveOffers(offers);
+    }
+
+    // Delete
+    public void deleteOffer(String id) {
+        ArrayList<Offer> offers = FileManager.loadOffers();
+        boolean removed = offers.removeIf(offer -> offer.getId().equals(id));
+
+        if ( removed ) {
+            FileManager.saveOffers(offers);
+            System.out.println("Offer deleted Successfully");
+        } else {
+            System.out.println("Offer not found.");
+        }
+    }
+
     // TODO: MANAGE MEALS (ADD, DELETE, UPDATE, LIST, SEARCH) LIKE EMPLOYEES ☝️
 
     // TODO: CUSTOMER REPORT LIKE EMPLOYEE REPORT 👇
@@ -111,11 +134,4 @@ public class AdminController {
 //
 //        return "REPORT: Total Registered Customers: " + total;
 //    }
-
-    // Make special Offer
-    public void createSpecialOffer(String offerName, double discount) {
-        String message = "New Offer: " + offerName + " (" + discount + "% OFF)";
-        FileManager.saveOffer(message);
-        System.out.println("Offer Published: " + message);
-    }
 }
