@@ -132,15 +132,15 @@ public class AdminDashboard extends JFrame {
         salaryField.setText("");
     }
 
-    // Meal Page
+    // model.Meal Page
     private JPanel createMealPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel titleLabel = new JLabel("Meal Management", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("model.Meal Management", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         
-        JButton openMealsButton = new JButton("Open Meal Management");
+        JButton openMealsButton = new JButton("Open model.Meal Management");
         openMealsButton.setFont(new Font("Arial", Font.PLAIN, 14));
         openMealsButton.setPreferredSize(new Dimension(200, 40));
         openMealsButton.addActionListener(e -> {

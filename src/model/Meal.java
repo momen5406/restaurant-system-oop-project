@@ -130,14 +130,14 @@ public class Meal {
 
     public String toFileRecord() {
         String[] parts = new String[]{
-            String.valueOf(mealID),
-            safeField(name),
-            String.valueOf(price),
-            safeField(category),
-            safeField(description),
-            String.valueOf(isAvailable),
-            safeField(ingredients),
-            String.valueOf(prepTimeMinutes)
+                String.valueOf(mealID),
+                safeField(name),
+                String.valueOf(price),
+                safeField(category),
+                safeField(description),
+                String.valueOf(isAvailable),
+                safeField(ingredients),
+                String.valueOf(prepTimeMinutes)
         };
         return String.join(FIELD_DELIMITER, parts);
     }
@@ -156,14 +156,14 @@ public class Meal {
             boolean available = Boolean.parseBoolean(parts[5]);
             int prepTime = Integer.parseInt(parts[7]);
             return new Meal(
-                id,
-                parts[1],
-                parsedPrice,
-                parts[3],
-                parts[4],
-                available,
-                parts[6],
-                prepTime
+                    id,
+                    parts[1],
+                    parsedPrice,
+                    parts[3],
+                    parts[4],
+                    available,
+                    parts[6],
+                    prepTime
             );
         } catch (NumberFormatException ex) {
             return null;
@@ -251,17 +251,17 @@ public class Meal {
 
     public static Comparator<Meal> sortByCategory() {
         return Comparator.comparing(Meal::getCategory, String.CASE_INSENSITIVE_ORDER)
-            .thenComparing(Meal::getName, String.CASE_INSENSITIVE_ORDER);
+                .thenComparing(Meal::getName, String.CASE_INSENSITIVE_ORDER);
     }
 
     public static Comparator<Meal> sortByAvailability() {
         return Comparator.comparing(Meal::isAvailable).reversed()
-            .thenComparing(Meal::getName, String.CASE_INSENSITIVE_ORDER);
+                .thenComparing(Meal::getName, String.CASE_INSENSITIVE_ORDER);
     }
 
     public static Comparator<Meal> sortByPrepTime() {
         return Comparator.comparingInt(Meal::getPrepTimeMinutes)
-            .thenComparing(Meal::getName, String.CASE_INSENSITIVE_ORDER);
+                .thenComparing(Meal::getName, String.CASE_INSENSITIVE_ORDER);
     }
 
     private String safeField(String value) {

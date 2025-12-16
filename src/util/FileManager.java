@@ -2,11 +2,8 @@ package util;
 
 import model.Admin;
 import model.Employee;
-<<<<<<< Updated upstream
 import model.Offer;
-=======
 import model.Meal;
->>>>>>> Stashed changes
 import model.User;
 
 import java.io.File;
@@ -112,7 +109,6 @@ public class FileManager {
         }
     }
 
-<<<<<<< Updated upstream
     private static final String MARKETING_FILE = "src/database/marketing.txt";
 
     public static void saveMarketingMessage(String message) {
@@ -139,7 +135,7 @@ public class FileManager {
     // TODO: Load Customers Method
 
     // TODO: Save Customers Method
-=======
+
     // Meals persistence
     private static final String MEALS_FILE = "src/database/meals.txt";
 
@@ -181,5 +177,4 @@ public class FileManager {
         }
         return max + 1;
     }
->>>>>>> Stashed changes
 }

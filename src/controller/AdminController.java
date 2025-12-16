@@ -1,11 +1,8 @@
 package controller;
 
 import model.Employee;
-<<<<<<< Updated upstream
 import model.Offer;
-=======
 import model.Meal;
->>>>>>> Stashed changes
 import model.User;
 import util.FileManager;
 
@@ -86,7 +83,6 @@ public class AdminController {
         return null;
     }
 
-<<<<<<< Updated upstream
     // Add Offer
     public void addOffer(String id, String offerName, String discount) {
         ArrayList<Offer> offers = FileManager.loadOffers();
@@ -122,7 +118,6 @@ public class AdminController {
     }
 
     // TODO: MANAGE MEALS (ADD, DELETE, UPDATE, LIST, SEARCH) LIKE EMPLOYEES ☝️
-=======
     // Meals Management
     public ArrayList<Meal> getAllMeals() {
         return FileManager.loadMeals();
@@ -186,8 +181,6 @@ public class AdminController {
         meals.add(meal);
         FileManager.saveMeals(meals);
     }
->>>>>>> Stashed changes
-
     // TODO: CUSTOMER REPORT LIKE EMPLOYEE REPORT 👇
 
     // Employee Report
