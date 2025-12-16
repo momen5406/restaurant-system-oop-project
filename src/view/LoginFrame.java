@@ -5,10 +5,9 @@ import model.User;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class LoginFrame {
+
     private JFrame frame;
     private JTextField usernameField;
     private JPasswordField passwordField;
@@ -18,35 +17,24 @@ public class LoginFrame {
     public LoginFrame() {
         userController = new UserController();
 
-        frame = new JFrame();
-        frame.setTitle("Restaurant | Login");
+        frame = new JFrame("Restaurant | Login");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(400,250);
+        frame.setSize(400, 250);
         frame.setLocationRelativeTo(null);
 
-        // Main Container with padding of 20px
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Form Panel
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
-        JLabel userLabel = new JLabel("Username: ");
+        JLabel userLabel = new JLabel("Username:");
         usernameField = new JTextField(15);
 
-        JLabel passwordLabel = new JLabel("Password: ");
+        JLabel passwordLabel = new JLabel("Password:");
         passwordField = new JPasswordField(15);
-
-        loginButton = new JButton("Login");
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                performLogin();
-            }
-        });
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -62,13 +50,15 @@ public class LoginFrame {
         gbc.gridx = 1;
         formPanel.add(passwordField, gbc);
 
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        loginButton = new JButton("Login");
+        loginButton.addActionListener(e -> performLogin());
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(loginButton);
 
-
+        mainPanel.add(formPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
         frame.setContentPane(mainPanel);
     }
 
@@ -77,23 +67,31 @@ public class LoginFrame {
     }
 
     private void performLogin() {
-        String username = usernameField.getText();
+        String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
 
         User user = userController.login(username, password);
 
-        if ( user != null ) {
-            JOptionPane.showMessageDialog(this.frame, "Welcome " + user.getRole() + ": " + user.getUsername());
-            if ( user.getRole().equals("ADMIN") ) {
-                this.frame.dispose();
-                new AdminDashboard(user);
-            } else if (user.getRole().equals("EMPLOYEE")) {
-                // TODO: Open Employee Dashboard
-                System.out.println("Opening Employee Dashboard..");
-            }
-            this.frame.dispose();
-        } else {
-            JOptionPane.showMessageDialog(this.frame, "Invalid username or Password");
+        if (user == null) {
+            JOptionPane.showMessageDialog(frame, "Invalid username or password");
+            return;
         }
+
+        JOptionPane.showMessageDialog(
+                frame,
+                "Welcome " + user.getRole() + ": " + user.getUsername()
+        );
+
+        frame.dispose();
+
+        SwingUtilities.invokeLater(() -> {
+            if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+                new AdminDashboard(user);
+            } else if ("EMPLOYEE".equalsIgnoreCase(user.getRole())) {
+                new EmployeeDashboard(user);
+            } else {
+                JOptionPane.showMessageDialog(null, "Unknown user role!");
+            }
+        });
     }
 }
