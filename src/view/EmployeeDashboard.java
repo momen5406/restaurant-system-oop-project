@@ -99,20 +99,14 @@ public class EmployeeDashboard extends JFrame {
         JButton addButton = new JButton("Add Customer");
         JButton updateButton = new JButton("Update Selected");
         JButton deleteButton = new JButton("Delete Selected");
-        JButton clearButton = new JButton("Clear");
-        JButton refreshButton = new JButton("Refresh");
 
         addButton.addActionListener(e -> addCustomer());
         updateButton.addActionListener(e -> updateCustomer());
         deleteButton.addActionListener(e -> deleteCustomer());
-        clearButton.addActionListener(e -> clearCustomerFields());
-        refreshButton.addActionListener(e -> refreshCustomerTable());
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(deleteButton);
-        buttonPanel.add(clearButton);
-        buttonPanel.add(refreshButton);
 
         controlPanel.add(formPanel);
         controlPanel.add(Box.createVerticalStrut(10));
@@ -270,7 +264,6 @@ public class EmployeeDashboard extends JFrame {
         JButton updateStatusBtn = new JButton("Update Status");
         JButton viewDetailsBtn = new JButton("View Details");
         JButton generateBillBtn = new JButton("Generate Bill");
-        JButton refreshButton = new JButton("Refresh");
 
         createOrderBtn.addActionListener(e -> showCreateOrderDialog());
         cancelOrderBtn.addActionListener(e -> cancelOrder());
@@ -278,14 +271,12 @@ public class EmployeeDashboard extends JFrame {
         updateStatusBtn.addActionListener(e -> updateOrderStatus());
         viewDetailsBtn.addActionListener(e -> viewOrderDetails());
         generateBillBtn.addActionListener(e -> generateBillForOrder());
-        refreshButton.addActionListener(e -> refreshOrderTable());
 
         buttonPanel.add(cancelOrderBtn);
         buttonPanel.add(deleteOrderBtn);
         buttonPanel.add(updateStatusBtn);
         buttonPanel.add(viewDetailsBtn);
         buttonPanel.add(generateBillBtn);
-        buttonPanel.add(refreshButton);
 
         // Order Details Area
         JPanel detailsPanel = new JPanel(new BorderLayout());
@@ -538,32 +529,20 @@ public class EmployeeDashboard extends JFrame {
             return;
         }
         
-        String[] paymentMethods = employeeController.getPaymentMethods();
-        String paymentMethod = (String) JOptionPane.showInputDialog(
-            this,
-            "Select payment method for order " + orderId + ":",
-            "Payment Method",
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            paymentMethods,
-            paymentMethods[0]
-        );
+        // Generate bill with default payment method (CASH)
+        String billResult = employeeController.generateBill(orderId, "CASH");
         
-        if (paymentMethod != null) {
-            String billResult = employeeController.generateBill(orderId, paymentMethod);
-            
-            JTextArea billArea = new JTextArea(billResult, 20, 60);
-            billArea.setEditable(false);
-            billArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-            
-            JScrollPane scrollPane = new JScrollPane(billArea);
-            scrollPane.setBorder(BorderFactory.createTitledBorder("Generated Bill"));
-            
-            JOptionPane.showMessageDialog(this, scrollPane, "Bill Generated", JOptionPane.INFORMATION_MESSAGE);
-            
-            refreshOrderTable();
-            refreshBillTable();
-        }
+        JTextArea billArea = new JTextArea(billResult, 20, 60);
+        billArea.setEditable(false);
+        billArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        
+        JScrollPane scrollPane = new JScrollPane(billArea);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Generated Bill"));
+        
+        JOptionPane.showMessageDialog(this, scrollPane, "Bill Generated", JOptionPane.INFORMATION_MESSAGE);
+        
+        refreshOrderTable();
+        refreshBillTable();
     }
     
     private void refreshOrderTable() {
@@ -610,7 +589,7 @@ public class EmployeeDashboard extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
 
         // Table
-        String[] columns = {"Bill ID", "Order ID", "Customer ID", "Customer Name", "Date", "Total Amount", "Payment Method"};
+        String[] columns = {"Bill ID", "Order ID", "Customer ID", "Customer Name", "Date", "Total Amount"};
         billTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -644,18 +623,15 @@ public class EmployeeDashboard extends JFrame {
         JButton viewBillBtn = new JButton("View Bill Details");
         JButton searchBillBtn = new JButton("Search Bill by ID");
         JButton deleteBillBtn = new JButton("Delete Selected");
-        JButton refreshButton = new JButton("Refresh");
 
         searchCustomerBillsBtn.addActionListener(e -> showCustomerBills());
         viewBillBtn.addActionListener(e -> viewBillDetails());
         searchBillBtn.addActionListener(e -> searchBill());
         deleteBillBtn.addActionListener(e -> deleteBill());
-        refreshButton.addActionListener(e -> refreshBillTable());
 
         buttonPanel.add(viewBillBtn);
         buttonPanel.add(searchBillBtn);
         buttonPanel.add(deleteBillBtn);
-        buttonPanel.add(refreshButton);
 
         // Bill Details Area
         JPanel detailsPanel = new JPanel(new BorderLayout());
@@ -763,7 +739,7 @@ public class EmployeeDashboard extends JFrame {
             billsDialog.setLayout(new BorderLayout());
             
             // Create table
-            String[] columns = {"Bill ID", "Order ID", "Date", "Total Amount", "Payment Method"};
+            String[] columns = {"Bill ID", "Order ID", "Date", "Total Amount"};
             DefaultTableModel model = new DefaultTableModel(columns, 0);
             
             for (Bill bill : customerBills) {
@@ -771,8 +747,7 @@ public class EmployeeDashboard extends JFrame {
                     bill.getBillId(),
                     bill.getOrderId(),
                     bill.getBillDate(),
-                    String.format("%.2f EGP", bill.getFinalAmount()),
-                    bill.getPaymentMethod()
+                    String.format("%.2f EGP", bill.getFinalAmount())
                 };
                 model.addRow(row);
             }
@@ -856,8 +831,7 @@ public class EmployeeDashboard extends JFrame {
                 bill.getCustomerId(),
                 bill.getCustomerName(),
                 bill.getBillDate(),
-                String.format("%.2f", bill.getFinalAmount()),
-                bill.getPaymentMethod()
+                String.format("%.2f", bill.getFinalAmount())
             };
             billTableModel.addRow(row);
         }
@@ -888,10 +862,8 @@ public class EmployeeDashboard extends JFrame {
         // Button row
         JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton searchButton = new JButton("Search");
-        JButton clearButton = new JButton("Clear");
-        
+
         buttonRow.add(searchButton);
-        buttonRow.add(clearButton);
 
         searchPanel.add(inputRow);
         searchPanel.add(Box.createVerticalStrut(10));
@@ -936,12 +908,6 @@ public class EmployeeDashboard extends JFrame {
             } else {
                 resultArea.setText("No customer found with the given criteria.");
             }
-        });
-
-        // Clear Action
-        clearButton.addActionListener(e -> {
-            searchField.setText("");
-            resultArea.setText("");
         });
 
         return panel;
