@@ -1,81 +1,65 @@
 package model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 
+public class Customer implements Serializable {
 
-import java.util.*;
-
-public class Customer {
+    private static final long serialVersionUID = 1L;
 
     private int id;
     private String name;
     private String phoneNumber;
-
-    private int loyaltyPoints;                   
-    private ArrayList<Order> orderHistory;     
-    private ArrayList<String> savedOffers;      
+    private int loyaltyPoints;
+    private ArrayList<String> orderIds;  // Changed from Order objects to String IDs
+    private ArrayList<String> savedOffers;
 
     public Customer(int id, String name, String phoneNumber) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
-
-        this.loyaltyPoints = 0;                   
-        this.orderHistory = new ArrayList<>();
+        this.loyaltyPoints = 0;
+        this.orderIds = new ArrayList<>();
         this.savedOffers = new ArrayList<>();
     }
 
-
-    public int getId() {
-        return id;
+    // Getters
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public int getLoyaltyPoints() { return loyaltyPoints; }
+    public ArrayList<String> getOrderIds() { return orderIds; }
+    public ArrayList<String> getSavedOffers() { return savedOffers; }
+    
+    // Setters
+    public void setName(String name) { this.name = name; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setLoyaltyPoints(int loyaltyPoints) { this.loyaltyPoints = loyaltyPoints; }  // ADD THIS METHOD!
+    
+    // Add methods
+    public void addLoyaltyPoints(int points) { this.loyaltyPoints += points; }
+    public void deductLoyaltyPoints(int points) { 
+        if (this.loyaltyPoints >= points) {
+            this.loyaltyPoints -= points; 
+        }
     }
-
-    public String getName() {
-        return name;
+    
+    public void addOrderId(String orderId) { 
+        if (!orderIds.contains(orderId)) {
+            orderIds.add(orderId); 
+        }
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public int getLoyaltyPoints() {
-        return loyaltyPoints;
-    }
-
-    public void addLoyaltyPoints(int points) {
-        this.loyaltyPoints += points;
-    }
-
-    public ArrayList<Order> getOrderHistory() {
-        return orderHistory;
-    }
-
-    public void addOrder(Order order) {
-        this.orderHistory.add(order);
-    }
-
-    public ArrayList<String> getSavedOffers() {
-        return savedOffers;
-    }
-
-    public void addOffer(String offer) {
-        this.savedOffers.add(offer);
-    }
+    
+    public void removeOrderId(String orderId) { orderIds.remove(orderId); }
+    public void addSavedOffer(String offer) { savedOffers.add(offer); }
+    public void removeSavedOffer(String offer) { savedOffers.remove(offer); }
 
     @Override
     public String toString() {
         return "Customer ID: " + id +
-                ", Name: " + name +
-                ", Phone: " + phoneNumber +
-                ", Loyalty Points: " + loyaltyPoints;
+               ", Name: " + name +
+               ", Phone: " + phoneNumber +
+               ", Loyalty Points: " + loyaltyPoints +
+               ", Orders: " + orderIds.size();
     }
 }
-
-
