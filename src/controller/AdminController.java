@@ -1,11 +1,16 @@
 package controller;
 
 import model.Employee;
+<<<<<<< Updated upstream
 import model.Offer;
+=======
+import model.Meal;
+>>>>>>> Stashed changes
 import model.User;
 import util.FileManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AdminController {
     // Employees Management
@@ -81,6 +86,7 @@ public class AdminController {
         return null;
     }
 
+<<<<<<< Updated upstream
     // Add Offer
     public void addOffer(String id, String offerName, String discount) {
         ArrayList<Offer> offers = FileManager.loadOffers();
@@ -116,6 +122,71 @@ public class AdminController {
     }
 
     // TODO: MANAGE MEALS (ADD, DELETE, UPDATE, LIST, SEARCH) LIKE EMPLOYEES ☝️
+=======
+    // Meals Management
+    public ArrayList<Meal> getAllMeals() {
+        return FileManager.loadMeals();
+    }
+
+    public Meal addMeal(String name, double price, String category, String description,
+                        boolean available, String ingredients, int prepTimeMinutes) {
+        ArrayList<Meal> meals = FileManager.loadMeals();
+        int newId = FileManager.nextMealId(meals);
+        Meal meal = new Meal(newId, name, price, category, description, available, ingredients, prepTimeMinutes);
+        meals.add(meal);
+        FileManager.saveMeals(meals);
+        return meal;
+    }
+
+    public boolean updateMeal(Meal updatedMeal) {
+        ArrayList<Meal> meals = FileManager.loadMeals();
+        boolean found = false;
+        for (int i = 0; i < meals.size(); i++) {
+            if (meals.get(i).getMealID() == updatedMeal.getMealID()) {
+                meals.set(i, updatedMeal);
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            FileManager.saveMeals(meals);
+        }
+        return found;
+    }
+
+    public boolean deleteMeal(int mealId) {
+        ArrayList<Meal> meals = FileManager.loadMeals();
+        boolean removed = meals.removeIf(meal -> meal.getMealID() == mealId);
+        if (removed) {
+            FileManager.saveMeals(meals);
+        }
+        return removed;
+    }
+
+    public boolean toggleMealAvailability(int mealId, boolean available) {
+        ArrayList<Meal> meals = FileManager.loadMeals();
+        boolean changed = false;
+        for (Meal meal : meals) {
+            if (meal.getMealID() == mealId) {
+                meal.setAvailable(available);
+                changed = true;
+                break;
+            }
+        }
+        if (changed) {
+            FileManager.saveMeals(meals);
+        }
+        return changed;
+    }
+
+    public void restoreMeal(Meal meal) {
+        if (meal == null) return;
+        ArrayList<Meal> meals = FileManager.loadMeals();
+        meals.removeIf(m -> m.getMealID() == meal.getMealID());
+        meals.add(meal);
+        FileManager.saveMeals(meals);
+    }
+>>>>>>> Stashed changes
 
     // TODO: CUSTOMER REPORT LIKE EMPLOYEE REPORT 👇
 

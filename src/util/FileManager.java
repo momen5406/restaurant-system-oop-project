@@ -2,11 +2,20 @@ package util;
 
 import model.Admin;
 import model.Employee;
+<<<<<<< Updated upstream
 import model.Offer;
+=======
+import model.Meal;
+>>>>>>> Stashed changes
 import model.User;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class FileManager {
@@ -103,6 +112,7 @@ public class FileManager {
         }
     }
 
+<<<<<<< Updated upstream
     private static final String MARKETING_FILE = "src/database/marketing.txt";
 
     public static void saveMarketingMessage(String message) {
@@ -129,4 +139,47 @@ public class FileManager {
     // TODO: Load Customers Method
 
     // TODO: Save Customers Method
+=======
+    // Meals persistence
+    private static final String MEALS_FILE = "src/database/meals.txt";
+
+    public static ArrayList<Meal> loadMeals() {
+        ArrayList<Meal> meals = new ArrayList<>();
+        File file = new File(MEALS_FILE);
+        if (!file.exists()) {
+            return meals;
+        }
+        try (Scanner input = new Scanner(file)) {
+            while (input.hasNextLine()) {
+                Meal meal = Meal.fromFileRecord(input.nextLine());
+                if (meal != null) {
+                    meals.add(meal);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Meals file not found: " + e.getMessage());
+        }
+        return meals;
+    }
+
+    public static void saveMeals(List<Meal> meals) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(MEALS_FILE))) {
+            for (Meal meal : meals) {
+                pw.println(meal.toFileRecord());
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving meals: " + e.getMessage());
+        }
+    }
+
+    public static int nextMealId(List<Meal> meals) {
+        int max = 0;
+        if (meals != null) {
+            for (Meal meal : meals) {
+                max = Math.max(max, meal.getMealID());
+            }
+        }
+        return max + 1;
+    }
+>>>>>>> Stashed changes
 }

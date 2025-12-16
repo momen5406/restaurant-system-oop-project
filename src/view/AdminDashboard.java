@@ -10,8 +10,6 @@ import util.FileManager;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class AdminDashboard extends JFrame {
@@ -136,8 +134,25 @@ public class AdminDashboard extends JFrame {
 
     // Meal Page
     private JPanel createMealPanel() {
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("Meal Management Table goes here..."));
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titleLabel = new JLabel("Meal Management", JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        
+        JButton openMealsButton = new JButton("Open Meal Management");
+        openMealsButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        openMealsButton.setPreferredSize(new Dimension(200, 40));
+        openMealsButton.addActionListener(e -> {
+            new MealsGUI();
+        });
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(openMealsButton);
+
+        panel.add(titleLabel, BorderLayout.NORTH);
+        panel.add(buttonPanel, BorderLayout.CENTER);
+
         return panel;
     }
 
