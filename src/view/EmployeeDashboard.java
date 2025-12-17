@@ -43,7 +43,8 @@ public class EmployeeDashboard extends JFrame {
         tabbedPane.add("Manage Orders", createOrderPanel());
         tabbedPane.add("Manage Bills", createBillPanel());
         tabbedPane.add("Search Customer", createSearchPanel());
-        
+        tabbedPane.add("Logout", logout());
+
         add(tabbedPane);
         
         // Refresh tables after UI is built
@@ -926,5 +927,20 @@ public class EmployeeDashboard extends JFrame {
         sb.append("═══════════════════════════════════════════════════════════\n");
         
         return sb.toString();
+    }
+
+    private JPanel logout() {
+        JPanel panel = new JPanel();
+
+        JButton logout = new JButton("Logout");
+        panel.add(logout);
+
+        logout.addActionListener(e -> {
+            LoginFrame login = new LoginFrame();
+            login.show();
+            this.dispose();
+        });
+
+        return panel;
     }
 }
