@@ -9,56 +9,53 @@ import java.util.UUID;
 
 public class EmployeeController {
     
-    // ========== CUSTOMER MANAGEMENT ==========
-    
-    public void addCustomer(int id, String name, String phoneNumber) {
+    public boolean addCustomer(int id, String name, String phoneNumber) {
         try {
-            System.out.println("[Controller] Adding customer ID: " + id);
-            
             ArrayList<Customer> customers = FileManager.loadCustomers();
             
-            // Check if customer ID already exists
             for (Customer customer : customers) {
                 if (customer.getId() == id) {
                     JOptionPane.showMessageDialog(null, "Customer ID already exists!");
-                    return;
+                    return false;
                 }
             }
             
-            // Create and save customer
             Customer newCustomer = new Customer(id, name, phoneNumber);
             customers.add(newCustomer);
             FileManager.saveCustomers(customers);
             
             JOptionPane.showMessageDialog(null, "Customer added successfully!");
+            return true;
             
         } catch (Exception e) {
             System.err.println("[Controller] Error adding customer: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+            return false;
         }
     }
 
-    public void deleteCustomer(int id) {
+    public boolean deleteCustomer(int id) {
         try {
-            System.out.println("[Controller] Deleting customer ID: " + id);
             ArrayList<Customer> customers = FileManager.loadCustomers();
             boolean removed = customers.removeIf(customer -> customer.getId() == id);
 
             if (removed) {
                 FileManager.saveCustomers(customers);
                 JOptionPane.showMessageDialog(null, "Customer deleted successfully!");
+                return true;
             } else {
                 JOptionPane.showMessageDialog(null, "Customer not found!");
+                return false;
             }
         } catch (Exception e) {
             System.err.println("[Controller] Error deleting customer: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+            return false;
         }
     }
 
-    public void updateCustomer(int id, String name, String phoneNumber) {
+    public boolean updateCustomer(int id, String name, String phoneNumber) {
         try {
-            System.out.println("[Controller] Updating customer ID: " + id);
             ArrayList<Customer> customers = FileManager.loadCustomers();
             boolean found = false;
 
@@ -74,12 +71,15 @@ public class EmployeeController {
             if (found) {
                 FileManager.saveCustomers(customers);
                 JOptionPane.showMessageDialog(null, "Customer updated successfully!");
+                return true;
             } else {
                 JOptionPane.showMessageDialog(null, "Customer not found!");
+                return false;
             }
         } catch (Exception e) {
             System.err.println("[Controller] Error updating customer: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+            return false;
         }
     }
 
@@ -123,65 +123,58 @@ public class EmployeeController {
         }
     }
     
-    // ========== ORDER MANAGEMENT ==========
-    
     public boolean makeOrder(int customerId, ArrayList<OrderItem> items, String instructions) {
         try {
-            System.out.println("[Controller] Creating order for customer ID: " + customerId);
+            ArrayList<Customer> customers = FileManager.loadCustomers();
+            Customer customer = null;
+            int customerIndex = -1;
             
-            // Check if customer exists
-            Customer customer = searchCustomerById(customerId);
+            for (int i = 0; i < customers.size(); i++) {
+                if (customers.get(i).getId() == customerId) {
+                    customer = customers.get(i);
+                    customerIndex = i;
+                    break;
+                }
+            }
+            
             if (customer == null) {
                 JOptionPane.showMessageDialog(null, "Error: Customer not found!");
                 return false;
             }
             
-            // Check if items are provided
             if (items == null || items.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Error: Order must have at least one item!");
                 return false;
             }
             
-            // Calculate total amount
             double totalAmount = 0;
             for (OrderItem item : items) {
-                double subtotal = item.getPrice() * item.getQuantity();
-                totalAmount += subtotal;
+                totalAmount += item.getPrice() * item.getQuantity();
             }
             
-            // Generate order ID
             String orderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
             
-            // Create order
             Date orderDate = new Date();
             Order newOrder = new Order(orderId, customerId, orderDate, items, "PENDING", totalAmount);
             if (instructions != null && !instructions.trim().isEmpty()) {
                 newOrder.setSpecialInstructions(instructions);
             }
             
-            // Save order
             ArrayList<Order> orders = FileManager.loadOrders();
             orders.add(newOrder);
             FileManager.saveOrders(orders);
             
-            // Update customer with order ID
             customer.addOrderId(orderId);
+            
             int loyaltyPointsEarned = (int)(totalAmount / 10);
             if (loyaltyPointsEarned > 0) {
                 customer.addLoyaltyPoints(loyaltyPointsEarned);
             }
             
-            // Update customer in system
-            ArrayList<Customer> customers = getAllCustomers();
-            for (int i = 0; i < customers.size(); i++) {
-                if (customers.get(i).getId() == customerId) {
-                    customers.set(i, customer);
-                    break;
-                }
-            }
+            customers.set(customerIndex, customer);
             FileManager.saveCustomers(customers);
             
-            System.out.println("[Controller] Order created successfully! Order ID: " + orderId);
+            JOptionPane.showMessageDialog(null, "Order created successfully! Order ID: " + orderId);
             return true;
             
         } catch (Exception e) {
@@ -191,9 +184,39 @@ public class EmployeeController {
         }
     }
     
+    public boolean addCheesecakeGift(String orderId) {
+        try {
+            ArrayList<Order> orders = FileManager.loadOrders();
+            
+            for (Order order : orders) {
+                if (order.getOrderId().equals(orderId)) {
+                    if (order.getStatus().equals("CANCELLED") || order.getStatus().equals("COMPLETED")) {
+                        JOptionPane.showMessageDialog(null, "Cannot add gift to " + order.getStatus().toLowerCase() + " order!");
+                        return false;
+                    }
+                    
+                    OrderItem cheesecake = new OrderItem("GIFT001", "Cheesecake (Gift)", "Dessert", 0.0, 1);
+                    order.getItems().add(cheesecake);
+                    
+                    FileManager.saveOrders(orders);
+                    
+                    JOptionPane.showMessageDialog(null, "Free Cheesecake added to order!");
+                    return true;
+                }
+            }
+            
+            JOptionPane.showMessageDialog(null, "Order not found!");
+            return false;
+            
+        } catch (Exception e) {
+            System.err.println("[Controller] Error adding cheesecake gift: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error adding gift: " + e.getMessage());
+            return false;
+        }
+    }
+    
     public boolean cancelOrder(String orderId) {
         try {
-            System.out.println("[Controller] Canceling order: " + orderId);
             ArrayList<Order> orders = FileManager.loadOrders();
             
             for (Order order : orders) {
@@ -225,10 +248,8 @@ public class EmployeeController {
     
     public boolean deleteOrder(String orderId) {
         try {
-            System.out.println("[Controller] Deleting order: " + orderId);
             ArrayList<Order> orders = FileManager.loadOrders();
             
-            // Find the order
             Order orderToDelete = null;
             for (Order order : orders) {
                 if (order.getOrderId().equals(orderId)) {
@@ -242,24 +263,18 @@ public class EmployeeController {
                 return false;
             }
             
-            // Delete the order
             boolean removed = orders.removeIf(order -> order.getOrderId().equals(orderId));
             if (removed) {
                 FileManager.saveOrders(orders);
                 
-                // Remove order from customer's history
-                Customer customer = searchCustomerById(orderToDelete.getCustomerId());
-                if (customer != null) {
-                    customer.removeOrderId(orderId);
-                    ArrayList<Customer> customers = getAllCustomers();
-                    for (int i = 0; i < customers.size(); i++) {
-                        if (customers.get(i).getId() == customer.getId()) {
-                            customers.set(i, customer);
-                            break;
-                        }
+                ArrayList<Customer> customers = FileManager.loadCustomers();
+                for (Customer customer : customers) {
+                    if (customer.getId() == orderToDelete.getCustomerId()) {
+                        customer.removeOrderId(orderId);
+                        break;
                     }
-                    FileManager.saveCustomers(customers);
                 }
+                FileManager.saveCustomers(customers);
                 
                 return true;
             }
@@ -297,9 +312,36 @@ public class EmployeeController {
         }
     }
     
+    public int getTotalOrderCount() {
+        try {
+            ArrayList<Order> orders = getAllOrders();
+            return orders.size();
+        } catch (Exception e) {
+            System.err.println("[Controller] Error getting total order count: " + e.getMessage());
+            return 0;
+        }
+    }
+    
+    public int getTotalItemCount() {
+        try {
+            ArrayList<Order> orders = getAllOrders();
+            int totalItems = 0;
+            for (Order order : orders) {
+                if (order.getItems() != null) {
+                    for (OrderItem item : order.getItems()) {
+                        totalItems += item.getQuantity();
+                    }
+                }
+            }
+            return totalItems;
+        } catch (Exception e) {
+            System.err.println("[Controller] Error getting total item count: " + e.getMessage());
+            return 0;
+        }
+    }
+    
     public boolean updateOrderStatus(String orderId, String newStatus) {
         try {
-            System.out.println("[Controller] Updating order status: " + orderId + " -> " + newStatus);
             ArrayList<Order> orders = FileManager.loadOrders();
             
             for (Order order : orders) {
@@ -309,20 +351,15 @@ public class EmployeeController {
                         return false;
                     }
                     
-                    // Add loyalty points when order is completed
                     if (newStatus.equals("COMPLETED") && !order.getStatus().equals("COMPLETED")) {
-                        Customer customer = searchCustomerById(order.getCustomerId());
-                        if (customer != null) {
-                            int pointsEarned = (int)(order.getTotalAmount() / 10);
-                            customer.addLoyaltyPoints(pointsEarned);
-                            ArrayList<Customer> customers = getAllCustomers();
-                            for (int i = 0; i < customers.size(); i++) {
-                                if (customers.get(i).getId() == customer.getId()) {
-                                    customers.set(i, customer);
-                                    break;
-                                }
+                        ArrayList<Customer> customers = FileManager.loadCustomers();
+                        for (Customer customer : customers) {
+                            if (customer.getId() == order.getCustomerId()) {
+                                int pointsEarned = (int)(order.getTotalAmount() / 10);
+                                customer.addLoyaltyPoints(pointsEarned);
+                                FileManager.saveCustomers(customers);
+                                break;
                             }
-                            FileManager.saveCustomers(customers);
                         }
                     }
                     
@@ -358,7 +395,7 @@ public class EmployeeController {
             details.append("Total: ").append(String.format("%.2f", order.getTotalAmount())).append(" EGP\n");
             details.append("Instructions: ").append(order.getSpecialInstructions() != null ? order.getSpecialInstructions() : "None").append("\n");
             
-            if (!order.getItems().isEmpty()) {
+            if (order.getItems() != null && !order.getItems().isEmpty()) {
                 details.append("\n=== ORDER ITEMS ===\n");
                 double total = 0;
                 for (OrderItem item : order.getItems()) {
@@ -373,7 +410,7 @@ public class EmployeeController {
                 }
                 details.append("\nTOTAL AMOUNT: ").append(String.format("%.2f", total)).append(" EGP\n");
             } else {
-                details.append("\nNo items in this order\n");
+                details.append("\nNo items found in this order\n");
             }
             
             return details.toString();
@@ -384,39 +421,29 @@ public class EmployeeController {
         }
     }
     
-    // ========== BILL MANAGEMENT ==========
-    
     public String generateBill(String orderId, String paymentMethod) {
         try {
-            System.out.println("[Controller] Generating bill for order: " + orderId);
-            
-            // Get order
             Order order = getOrderById(orderId);
             if (order == null) {
                 return "Order not found!";
             }
             
-            // Get customer
             Customer customer = searchCustomerById(order.getCustomerId());
             if (customer == null) {
                 return "Customer not found!";
             }
             
-            // Generate bill ID
             String billId = "BILL-" + System.currentTimeMillis();
             
-            // Create bill
             Date billDate = new Date();
             Bill bill = new Bill(billId, orderId, customer.getId(), 
                                 customer.getName(), customer.getPhoneNumber(),
                                 billDate, order.getTotalAmount(), paymentMethod);
             
-            // Save bill
             ArrayList<Bill> bills = FileManager.loadBills();
             bills.add(bill);
             FileManager.saveBills(bills);
             
-            // Update order status to COMPLETED
             updateOrderStatus(orderId, "COMPLETED");
             
             return bill.getFormattedBill();
@@ -471,10 +498,8 @@ public class EmployeeController {
     
     public boolean deleteBill(String billId) {
         try {
-            System.out.println("[Controller] Deleting bill: " + billId);
             ArrayList<Bill> bills = FileManager.loadBills();
             
-            // Find the bill
             Bill billToDelete = null;
             for (Bill bill : bills) {
                 if (bill.getBillId().equals(billId)) {
@@ -488,7 +513,6 @@ public class EmployeeController {
                 return false;
             }
             
-            // Update associated order status back to SERVED
             Order order = getOrderById(billToDelete.getOrderId());
             if (order != null && order.getStatus().equals("COMPLETED")) {
                 order.setStatus("SERVED");
@@ -502,7 +526,6 @@ public class EmployeeController {
                 FileManager.saveOrders(orders);
             }
             
-            // Delete the bill
             boolean removed = bills.removeIf(bill -> bill.getBillId().equals(billId));
             if (removed) {
                 FileManager.saveBills(bills);
@@ -524,7 +547,6 @@ public class EmployeeController {
                 return "Bill not found!";
             }
             
-            // Get order details
             Order order = getOrderById(bill.getOrderId());
             
             StringBuilder details = new StringBuilder();
@@ -537,7 +559,7 @@ public class EmployeeController {
             details.append("Date: ").append(bill.getBillDate()).append("\n");
             details.append("Payment Method: ").append(bill.getPaymentMethod()).append("\n");
             
-            if (order != null && !order.getItems().isEmpty()) {
+            if (order != null && order.getItems() != null && !order.getItems().isEmpty()) {
                 details.append("\n=== ORDER ITEMS ===\n");
                 for (OrderItem item : order.getItems()) {
                     double subtotal = item.getPrice() * item.getQuantity();
@@ -548,6 +570,8 @@ public class EmployeeController {
                     details.append("  Subtotal: ").append(String.format("%.2f", subtotal)).append(" EGP\n");
                     details.append("  ------------------------------\n");
                 }
+            } else {
+                details.append("\nNo items found for this bill\n");
             }
             
             details.append("\n=== PAYMENT SUMMARY ===\n");
@@ -564,8 +588,6 @@ public class EmployeeController {
             return "Error loading bill details: " + e.getMessage();
         }
     }
-    
-    // ========== HELPER METHODS ==========
     
     public ArrayList<OrderItem> parseOrderItems(String itemsText) {
         ArrayList<OrderItem> items = new ArrayList<>();
