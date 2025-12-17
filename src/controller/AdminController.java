@@ -1,9 +1,6 @@
 package controller;
 
-import model.Employee;
-import model.Offer;
-import model.Meal;
-import model.User;
+import model.*;
 import util.FileManager;
 
 import java.util.ArrayList;
@@ -204,10 +201,10 @@ public class AdminController {
     }
 
     // TODO: Uncomment after finishing the loadCustomers method in FileManager.java
-//    public String CustomersReport() {
-//        ArrayList<Customer> customers = FileManager.loadCustomers();
-//        int total = customers.size();
-//
-//        return "REPORT: Total Registered Customers: " + total;
-//    }
+    public String CustomersReport() {
+        ArrayList<Customer> customers = FileManager.loadCustomers();
+        int total = customers.size();
+
+        return "REPORT: Total Registered Customers: " + total;
+    }
 }

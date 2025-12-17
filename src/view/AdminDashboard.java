@@ -172,8 +172,7 @@ public class AdminDashboard extends JFrame {
         });
 
         genCustReport.addActionListener(e -> {
-            // TODO: Change this EmployeesReport() to CustomersReport()
-            String report = adminController.EmployeesReport();
+            String report = adminController.CustomersReport();
             reportArea.setText(report);
             reportArea.setFont(new Font("Arial", Font.BOLD, 18));
         });
