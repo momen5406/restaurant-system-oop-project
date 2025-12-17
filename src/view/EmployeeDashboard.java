@@ -11,19 +11,13 @@ public class EmployeeDashboard extends JFrame {
     private User loggedInUser;
     private EmployeeController employeeController;
     private JTabbedPane tabbedPane;
-    
-    // Customer Management Components
     private JTable customerTable;
     private DefaultTableModel customerTableModel;
     private JTextField custIdField, custNameField, custPhoneField;
-    
-    // Order Management Components
     private JTable orderTable;
     private DefaultTableModel orderTableModel;
     private JTextField orderCustomerIdField;
     private JTextArea orderItemsArea;
-    
-    // Bill Management Components
     private JTable billTable;
     private DefaultTableModel billTableModel;
     private JTextField billCustomerIdField;
@@ -47,7 +41,6 @@ public class EmployeeDashboard extends JFrame {
 
         add(tabbedPane);
         
-        // Refresh tables after UI is built
         SwingUtilities.invokeLater(() -> {
             refreshCustomerTable();
             refreshOrderTable();
@@ -57,12 +50,9 @@ public class EmployeeDashboard extends JFrame {
         setVisible(true);
     }
     
-    // ========== CUSTOMER MANAGEMENT TAB ==========
-    
     private JPanel createCustomerPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Table
         String[] columns = {"ID", "Name", "Phone Number", "Loyalty Points", "Total Orders"};
         customerTableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -75,12 +65,10 @@ public class EmployeeDashboard extends JFrame {
         customerTable.setRowHeight(25);
         panel.add(new JScrollPane(customerTable), BorderLayout.CENTER);
 
-        // Control Panel
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Input Form
         JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 10));
         formPanel.setBorder(BorderFactory.createTitledBorder("Customer Information"));
         
@@ -95,7 +83,6 @@ public class EmployeeDashboard extends JFrame {
         formPanel.add(new JLabel("Phone:"));
         formPanel.add(custPhoneField);
 
-        // Button Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton addButton = new JButton("Add Customer");
         JButton updateButton = new JButton("Update Selected");
@@ -115,7 +102,6 @@ public class EmployeeDashboard extends JFrame {
 
         panel.add(controlPanel, BorderLayout.SOUTH);
 
-        // Load selected customer when clicked
         customerTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = customerTable.getSelectedRow();
@@ -141,9 +127,11 @@ public class EmployeeDashboard extends JFrame {
                 return;
             }
 
-            employeeController.addCustomer(id, name, phone);
-            refreshCustomerTable();
-            clearCustomerFields();
+            boolean success = employeeController.addCustomer(id, name, phone);
+            if (success) {
+                refreshCustomerTable();
+                clearCustomerFields();
+            }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "ID must be a number!");
         } catch (Exception ex) {
@@ -168,9 +156,11 @@ public class EmployeeDashboard extends JFrame {
                 return;
             }
 
-            employeeController.updateCustomer(id, name, phone);
-            refreshCustomerTable();
-            clearCustomerFields();
+            boolean success = employeeController.updateCustomer(id, name, phone);
+            if (success) {
+                refreshCustomerTable();
+                clearCustomerFields();
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
         }
@@ -194,9 +184,11 @@ public class EmployeeDashboard extends JFrame {
         );
         
         if (confirm == JOptionPane.YES_OPTION) {
-            employeeController.deleteCustomer(id);
-            refreshCustomerTable();
-            clearCustomerFields();
+            boolean success = employeeController.deleteCustomer(id);
+            if (success) {
+                refreshCustomerTable();
+                clearCustomerFields();
+            }
         }
     }
 
@@ -204,13 +196,27 @@ public class EmployeeDashboard extends JFrame {
         customerTableModel.setRowCount(0);
         ArrayList<Customer> customers = employeeController.getAllCustomers();
 
+        if (customers == null) {
+            return;
+        }
+
         for (Customer customer : customers) {
+            int orderCount = 0;
+            try {
+                ArrayList<String> orderIds = customer.getOrderIds();
+                if (orderIds != null) {
+                    orderCount = orderIds.size();
+                }
+            } catch (Exception e) {
+                orderCount = 0;
+            }
+            
             Object[] row = {
                 customer.getId(),
                 customer.getName(),
                 customer.getPhoneNumber(),
                 customer.getLoyaltyPoints(),
-                customer.getOrderIds().size()
+                orderCount
             };
             customerTableModel.addRow(row);
         }
@@ -223,12 +229,9 @@ public class EmployeeDashboard extends JFrame {
         customerTable.clearSelection();
     }
     
-    // ========== ORDER MANAGEMENT TAB ==========
-    
     private JPanel createOrderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Table
         String[] columns = {"Order ID", "Customer ID", "Date", "Status", "Total (EGP)", "Items"};
         orderTableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -241,12 +244,10 @@ public class EmployeeDashboard extends JFrame {
         orderTable.setRowHeight(25);
         panel.add(new JScrollPane(orderTable), BorderLayout.CENTER);
 
-        // Control Panel
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Form Panel
         JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         formPanel.setBorder(BorderFactory.createTitledBorder("Order Actions"));
         
@@ -258,13 +259,13 @@ public class EmployeeDashboard extends JFrame {
         formPanel.add(new JLabel(""));
         formPanel.add(createOrderBtn);
 
-        // Button Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton cancelOrderBtn = new JButton("Cancel Selected");
         JButton deleteOrderBtn = new JButton("Delete Selected");
         JButton updateStatusBtn = new JButton("Update Status");
         JButton viewDetailsBtn = new JButton("View Details");
         JButton generateBillBtn = new JButton("Generate Bill");
+        JButton giftCheesecakeBtn = new JButton("Gift Cheesecake");
 
         createOrderBtn.addActionListener(e -> showCreateOrderDialog());
         cancelOrderBtn.addActionListener(e -> cancelOrder());
@@ -272,14 +273,15 @@ public class EmployeeDashboard extends JFrame {
         updateStatusBtn.addActionListener(e -> updateOrderStatus());
         viewDetailsBtn.addActionListener(e -> viewOrderDetails());
         generateBillBtn.addActionListener(e -> generateBillForOrder());
+        giftCheesecakeBtn.addActionListener(e -> giftCheesecakeToOrder());
 
         buttonPanel.add(cancelOrderBtn);
         buttonPanel.add(deleteOrderBtn);
         buttonPanel.add(updateStatusBtn);
         buttonPanel.add(viewDetailsBtn);
         buttonPanel.add(generateBillBtn);
+        buttonPanel.add(giftCheesecakeBtn);
 
-        // Order Details Area
         JPanel detailsPanel = new JPanel(new BorderLayout());
         detailsPanel.setBorder(BorderFactory.createTitledBorder("Order Details"));
         
@@ -297,7 +299,6 @@ public class EmployeeDashboard extends JFrame {
 
         panel.add(controlPanel, BorderLayout.SOUTH);
 
-        // Load selected order when clicked
         orderTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = orderTable.getSelectedRow();
@@ -314,6 +315,40 @@ public class EmployeeDashboard extends JFrame {
         return panel;
     }
     
+    private void giftCheesecakeToOrder() {
+        int selectedRow = orderTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select an order!");
+            return;
+        }
+        
+        String orderId = (String) orderTableModel.getValueAt(selectedRow, 0);
+        String status = (String) orderTableModel.getValueAt(selectedRow, 3);
+        
+        if (status.equals("COMPLETED") || status.equals("CANCELLED")) {
+            JOptionPane.showMessageDialog(this, "Cannot add gift to " + status.toLowerCase() + " order!");
+            return;
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            this, 
+            "Add free Cheesecake as gift to order " + orderId + "?",
+            "Gift Cheesecake", 
+            JOptionPane.YES_NO_OPTION
+        );
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            boolean success = employeeController.addCheesecakeGift(orderId);
+            if (success) {
+                refreshOrderTable();
+                Order order = employeeController.getOrderById(orderId);
+                if (order != null) {
+                    displayOrderItems(order);
+                }
+            }
+        }
+    }
+    
     private void showCreateOrderDialog() {
         String customerIdText = orderCustomerIdField.getText().trim();
         if (customerIdText.isEmpty()) {
@@ -326,7 +361,6 @@ public class EmployeeDashboard extends JFrame {
         try {
             int customerId = Integer.parseInt(customerIdText);
             
-            // Check if customer exists
             Customer customer = employeeController.searchCustomerById(customerId);
             if (customer == null) {
                 JOptionPane.showMessageDialog(this, "Customer not found with ID: " + customerId);
@@ -341,7 +375,6 @@ public class EmployeeDashboard extends JFrame {
             JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
             mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             
-            // Items Panel
             JPanel itemsPanel = new JPanel(new BorderLayout());
             itemsPanel.setBorder(BorderFactory.createTitledBorder("Order Items (Format: itemId,name,category,price,quantity)"));
             
@@ -350,7 +383,6 @@ public class EmployeeDashboard extends JFrame {
             JScrollPane itemsScroll = new JScrollPane(itemsArea);
             itemsPanel.add(itemsScroll, BorderLayout.CENTER);
             
-            // Instructions Panel
             JPanel instructionsPanel = new JPanel(new BorderLayout());
             instructionsPanel.setBorder(BorderFactory.createTitledBorder("Special Instructions"));
             
@@ -358,15 +390,31 @@ public class EmployeeDashboard extends JFrame {
             JScrollPane instructionsScroll = new JScrollPane(instructionsArea);
             instructionsPanel.add(instructionsScroll, BorderLayout.CENTER);
             
-            // Button Panel
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
             JButton createBtn = new JButton("Create Order");
             JButton cancelBtn = new JButton("Cancel");
+            JButton addCheesecakeBtn = new JButton("Add Cheesecake Gift");
             
             createBtn.addActionListener(e -> {
                 try {
                     String instructions = instructionsArea.getText().trim();
-                    ArrayList<OrderItem> items = employeeController.parseOrderItems(itemsArea.getText());
+                    ArrayList<OrderItem> items = new ArrayList<>();
+                    
+                    String[] lines = itemsArea.getText().split("\n");
+                    for (String line : lines) {
+                        if (!line.trim().isEmpty()) {
+                            String[] parts = line.split(",");
+                            if (parts.length >= 5) {
+                                String itemId = parts[0].trim();
+                                String name = parts[1].trim();
+                                String category = parts[2].trim();
+                                double price = Double.parseDouble(parts[3].trim());
+                                int quantity = Integer.parseInt(parts[4].trim());
+                                
+                                items.add(new OrderItem(itemId, name, category, price, quantity));
+                            }
+                        }
+                    }
                     
                     if (items.isEmpty()) {
                         JOptionPane.showMessageDialog(dialog, "Please add at least one item!");
@@ -376,6 +424,7 @@ public class EmployeeDashboard extends JFrame {
                     boolean success = employeeController.makeOrder(customerId, items, instructions);
                     if (success) {
                         refreshOrderTable();
+                        refreshCustomerTable();
                         orderCustomerIdField.setText("");
                         dialog.dispose();
                     }
@@ -384,9 +433,15 @@ public class EmployeeDashboard extends JFrame {
                 }
             });
             
+            addCheesecakeBtn.addActionListener(e -> {
+                itemsArea.append("\nGIFT001,Cheesecake,Dessert,0.0,1");
+                JOptionPane.showMessageDialog(dialog, "Cheesecake added as free gift!");
+            });
+            
             cancelBtn.addActionListener(e -> dialog.dispose());
             
             buttonPanel.add(createBtn);
+            buttonPanel.add(addCheesecakeBtn);
             buttonPanel.add(cancelBtn);
             
             mainPanel.add(itemsPanel, BorderLayout.CENTER);
@@ -429,7 +484,9 @@ public class EmployeeDashboard extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) {
             boolean success = employeeController.cancelOrder(orderId);
             if (success) {
+                JOptionPane.showMessageDialog(this, "Order cancelled successfully!");
                 refreshOrderTable();
+                refreshCustomerTable();
                 orderItemsArea.setText("");
             }
         }
@@ -455,7 +512,9 @@ public class EmployeeDashboard extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) {
             boolean success = employeeController.deleteOrder(orderId);
             if (success) {
+                JOptionPane.showMessageDialog(this, "Order deleted successfully!");
                 refreshOrderTable();
+                refreshCustomerTable();
                 orderItemsArea.setText("");
             }
         }
@@ -485,6 +544,7 @@ public class EmployeeDashboard extends JFrame {
         if (newStatus != null && !newStatus.equals(currentStatus)) {
             boolean success = employeeController.updateOrderStatus(orderId, newStatus);
             if (success) {
+                JOptionPane.showMessageDialog(this, "Order status updated to " + newStatus);
                 refreshOrderTable();
             }
         }
@@ -498,16 +558,37 @@ public class EmployeeDashboard extends JFrame {
         }
         
         String orderId = (String) orderTableModel.getValueAt(selectedRow, 0);
-        String details = employeeController.getOrderDetails(orderId);
+        Order order = employeeController.getOrderById(orderId);
         
-        JTextArea detailsArea = new JTextArea(details, 20, 50);
+        if (order == null) {
+            JOptionPane.showMessageDialog(this, "Order not found!");
+            return;
+        }
+        
+        StringBuilder details = new StringBuilder();
+        details.append("Order ID: ").append(order.getOrderId()).append("\n");
+        details.append("Customer ID: ").append(order.getCustomerId()).append("\n");
+        details.append("Date: ").append(order.getOrderDate()).append("\n");
+        details.append("Status: ").append(order.getStatus()).append("\n");
+        details.append("Instructions: ").append(order.getSpecialInstructions()).append("\n");
+        details.append("Total: ").append(String.format("%.2f", order.getTotalAmount())).append(" EGP\n\n");
+        details.append("Items:\n");
+        
+        for (OrderItem item : order.getItems()) {
+            details.append("  • ").append(item.getName())
+                  .append(" (").append(item.getQuantity()).append("x)")
+                  .append(" @ ").append(String.format("%.2f", item.getPrice()))
+                  .append(" EGP each\n");
+        }
+        
+        JTextArea detailsArea = new JTextArea(details.toString(), 20, 50);
         detailsArea.setEditable(false);
         detailsArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         
         JScrollPane scrollPane = new JScrollPane(detailsArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Order Details: " + orderId));
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Order Details"));
         
-        JOptionPane.showMessageDialog(this, scrollPane, "Order Details", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, scrollPane, "Details", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void generateBillForOrder() {
@@ -530,7 +611,6 @@ public class EmployeeDashboard extends JFrame {
             return;
         }
         
-        // Generate bill with default payment method (CASH)
         String billResult = employeeController.generateBill(orderId, "CASH");
         
         JTextArea billArea = new JTextArea(billResult, 20, 60);
@@ -544,20 +624,34 @@ public class EmployeeDashboard extends JFrame {
         
         refreshOrderTable();
         refreshBillTable();
+        refreshCustomerTable();
     }
     
     private void refreshOrderTable() {
         orderTableModel.setRowCount(0);
         ArrayList<Order> orders = employeeController.getAllOrders();
-        
+
+        if (orders == null) {
+            return;
+        }
+
         for (Order order : orders) {
+            int itemCount = 0;
+            try {
+                if (order.getItems() != null) {
+                    itemCount = order.getItems().size();
+                }
+            } catch (Exception e) {
+                itemCount = 0;
+            }
+            
             Object[] row = {
                 order.getOrderId(),
                 order.getCustomerId(),
                 order.getOrderDate(),
                 order.getStatus(),
                 String.format("%.2f", order.getTotalAmount()),
-                order.getItems().size()
+                itemCount
             };
             orderTableModel.addRow(row);
         }
@@ -572,24 +666,25 @@ public class EmployeeDashboard extends JFrame {
         sb.append("Instructions: ").append(order.getSpecialInstructions() != null ? order.getSpecialInstructions() : "None").append("\n\n");
         sb.append("ORDER ITEMS:\n");
         
-        for (OrderItem item : order.getItems()) {
-            double subtotal = item.getPrice() * item.getQuantity();
-            sb.append("• ").append(item.getQuantity()).append("x ").append(item.getName())
-              .append(" (").append(item.getCategory()).append(")\n");
-            sb.append("  Price: ").append(String.format("%.2f", item.getPrice())).append(" EGP each\n");
-            sb.append("  Subtotal: ").append(String.format("%.2f", subtotal)).append(" EGP\n");
-            sb.append("----------------------------------------\n");
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            for (OrderItem item : order.getItems()) {
+                double subtotal = item.getPrice() * item.getQuantity();
+                sb.append("• ").append(item.getQuantity()).append("x ").append(item.getName())
+                  .append(" (").append(item.getCategory()).append(")\n");
+                sb.append("  Price: ").append(String.format("%.2f", item.getPrice())).append(" EGP each\n");
+                sb.append("  Subtotal: ").append(String.format("%.2f", subtotal)).append(" EGP\n");
+                sb.append("----------------------------------------\n");
+            }
+        } else {
+            sb.append("No items found for this order.\n");
         }
         
         orderItemsArea.setText(sb.toString());
     }
     
-    // ========== BILL MANAGEMENT TAB ==========
-    
     private JPanel createBillPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Table
         String[] columns = {"Bill ID", "Order ID", "Customer ID", "Customer Name", "Date", "Total Amount"};
         billTableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -602,12 +697,10 @@ public class EmployeeDashboard extends JFrame {
         billTable.setRowHeight(25);
         panel.add(new JScrollPane(billTable), BorderLayout.CENTER);
 
-        // Control Panel
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Form Panel
         JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         formPanel.setBorder(BorderFactory.createTitledBorder("Bill Actions"));
         
@@ -619,7 +712,6 @@ public class EmployeeDashboard extends JFrame {
         formPanel.add(new JLabel(""));
         formPanel.add(searchCustomerBillsBtn);
 
-        // Button Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton viewBillBtn = new JButton("View Bill Details");
         JButton searchBillBtn = new JButton("Search Bill by ID");
@@ -634,7 +726,6 @@ public class EmployeeDashboard extends JFrame {
         buttonPanel.add(searchBillBtn);
         buttonPanel.add(deleteBillBtn);
 
-        // Bill Details Area
         JPanel detailsPanel = new JPanel(new BorderLayout());
         detailsPanel.setBorder(BorderFactory.createTitledBorder("Bill Details"));
         
@@ -652,7 +743,6 @@ public class EmployeeDashboard extends JFrame {
 
         panel.add(controlPanel, BorderLayout.SOUTH);
 
-        // Load selected bill when clicked
         billTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = billTable.getSelectedRow();
@@ -728,18 +818,16 @@ public class EmployeeDashboard extends JFrame {
             int customerId = Integer.parseInt(customerIdText.trim());
             ArrayList<Bill> customerBills = employeeController.getBillsByCustomer(customerId);
             
-            if (customerBills.isEmpty()) {
+            if (customerBills == null || customerBills.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No bills found for customer ID: " + customerId);
                 return;
             }
             
-            // Create dialog to display customer bills
             JDialog billsDialog = new JDialog(this, "Customer Bills - ID: " + customerId, true);
             billsDialog.setSize(600, 400);
             billsDialog.setLocationRelativeTo(this);
             billsDialog.setLayout(new BorderLayout());
             
-            // Create table
             String[] columns = {"Bill ID", "Order ID", "Date", "Total Amount"};
             DefaultTableModel model = new DefaultTableModel(columns, 0);
             
@@ -759,7 +847,6 @@ public class EmployeeDashboard extends JFrame {
             JScrollPane scrollPane = new JScrollPane(billsTable);
             scrollPane.setBorder(BorderFactory.createTitledBorder("Bills for Customer ID: " + customerId));
             
-            // Add view button
             JButton viewBtn = new JButton("View Selected Bill");
             viewBtn.addActionListener(e -> {
                 int selectedRow = billsTable.getSelectedRow();
@@ -815,6 +902,7 @@ public class EmployeeDashboard extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) {
             boolean success = employeeController.deleteBill(billId);
             if (success) {
+                JOptionPane.showMessageDialog(this, "Bill deleted successfully!");
                 refreshBillTable();
                 billDetailsArea.setText("");
             }
@@ -824,7 +912,11 @@ public class EmployeeDashboard extends JFrame {
     private void refreshBillTable() {
         billTableModel.setRowCount(0);
         ArrayList<Bill> bills = employeeController.getAllBills();
-        
+
+        if (bills == null) {
+            return;
+        }
+
         for (Bill bill : bills) {
             Object[] row = {
                 bill.getBillId(),
@@ -838,18 +930,14 @@ public class EmployeeDashboard extends JFrame {
         }
     }
     
-    // ========== SEARCH CUSTOMER TAB ==========
-    
     private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Search Panel
         JPanel searchPanel = new JPanel();
         searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
         searchPanel.setBorder(BorderFactory.createTitledBorder("Search Customer"));
 
-        // Input row
         JPanel inputRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JTextField searchField = new JTextField(20);
         JComboBox<String> searchType = new JComboBox<>(new String[]{"By Name", "By ID"});
@@ -860,7 +948,6 @@ public class EmployeeDashboard extends JFrame {
         inputRow.add(new JLabel("Search By:"));
         inputRow.add(searchType);
 
-        // Button row
         JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton searchButton = new JButton("Search");
 
@@ -870,7 +957,6 @@ public class EmployeeDashboard extends JFrame {
         searchPanel.add(Box.createVerticalStrut(10));
         searchPanel.add(buttonRow);
 
-        // Results Panel
         JTextArea resultArea = new JTextArea(15, 50);
         resultArea.setEditable(false);
         resultArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -880,7 +966,6 @@ public class EmployeeDashboard extends JFrame {
         panel.add(searchPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        // Search Action
         searchButton.addActionListener(e -> {
             String searchText = searchField.getText().trim();
             String searchBy = (String) searchType.getSelectedItem();
@@ -923,7 +1008,18 @@ public class EmployeeDashboard extends JFrame {
         sb.append(String.format("Name:          %s\n", customer.getName()));
         sb.append(String.format("Phone:         %s\n", customer.getPhoneNumber()));
         sb.append(String.format("Loyalty Points:%d\n", customer.getLoyaltyPoints()));
-        sb.append(String.format("Total Orders:  %d\n", customer.getOrderIds().size()));
+        
+        int orderCount = 0;
+        try {
+            ArrayList<String> orderIds = customer.getOrderIds();
+            if (orderIds != null) {
+                orderCount = orderIds.size();
+            }
+        } catch (Exception e) {
+            orderCount = 0;
+        }
+        
+        sb.append(String.format("Total Orders:  %d\n", orderCount));
         sb.append("═══════════════════════════════════════════════════════════\n");
         
         return sb.toString();
