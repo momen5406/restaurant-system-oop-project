@@ -4,14 +4,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Customer implements Serializable {
-
     private static final long serialVersionUID = 1L;
-
     private int id;
     private String name;
     private String phoneNumber;
     private int loyaltyPoints;
-    private ArrayList<String> orderIds;  // Changed from Order objects to String IDs
+    private ArrayList<String> orderIds;
     private ArrayList<String> savedOffers;
 
     public Customer(int id, String name, String phoneNumber) {
@@ -23,36 +21,61 @@ public class Customer implements Serializable {
         this.savedOffers = new ArrayList<>();
     }
 
-    // Getters
     public int getId() { return id; }
     public String getName() { return name; }
     public String getPhoneNumber() { return phoneNumber; }
     public int getLoyaltyPoints() { return loyaltyPoints; }
-    public ArrayList<String> getOrderIds() { return orderIds; }
-    public ArrayList<String> getSavedOffers() { return savedOffers; }
     
-    // Setters
+    public ArrayList<String> getOrderIds() { 
+        if (this.orderIds == null) {
+            this.orderIds = new ArrayList<>();
+        }
+        return orderIds; 
+    }
+    
+    public ArrayList<String> getSavedOffers() { 
+        if (this.savedOffers == null) {
+            this.savedOffers = new ArrayList<>();
+        }
+        return savedOffers; 
+    }
+
     public void setName(String name) { this.name = name; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-    public void setLoyaltyPoints(int loyaltyPoints) { this.loyaltyPoints = loyaltyPoints; }  // ADD THIS METHOD!
-    
-    // Add methods
+    public void setLoyaltyPoints(int loyaltyPoints) { this.loyaltyPoints = loyaltyPoints; }
+
     public void addLoyaltyPoints(int points) { this.loyaltyPoints += points; }
-    public void deductLoyaltyPoints(int points) { 
+    public void deductLoyaltyPoints(int points) {
         if (this.loyaltyPoints >= points) {
-            this.loyaltyPoints -= points; 
+            this.loyaltyPoints -= points;
+        }
+    }
+
+    public void addOrderId(String orderId) {
+        ArrayList<String> ids = getOrderIds(); // Use getter to ensure not null
+        if (!ids.contains(orderId)) {
+            ids.add(orderId);
+        }
+    }
+
+    public void removeOrderId(String orderId) { 
+        if (this.orderIds != null) {
+            orderIds.remove(orderId); 
         }
     }
     
-    public void addOrderId(String orderId) { 
-        if (!orderIds.contains(orderId)) {
-            orderIds.add(orderId); 
+    public void addSavedOffer(String offer) { 
+        if (this.savedOffers == null) {
+            this.savedOffers = new ArrayList<>();
         }
+        savedOffers.add(offer); 
     }
     
-    public void removeOrderId(String orderId) { orderIds.remove(orderId); }
-    public void addSavedOffer(String offer) { savedOffers.add(offer); }
-    public void removeSavedOffer(String offer) { savedOffers.remove(offer); }
+    public void removeSavedOffer(String offer) { 
+        if (this.savedOffers != null) {
+            savedOffers.remove(offer); 
+        }
+    }
 
     @Override
     public String toString() {
@@ -60,6 +83,6 @@ public class Customer implements Serializable {
                ", Name: " + name +
                ", Phone: " + phoneNumber +
                ", Loyalty Points: " + loyaltyPoints +
-               ", Orders: " + orderIds.size();
+               ", Orders: " + getOrderIds().size();
     }
 }
