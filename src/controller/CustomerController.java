@@ -17,7 +17,7 @@ public class CustomerController {
         return null;
     }
 
-<<<<<<< HEAD
+
     public static boolean register(String name, String phone) {
         if (name == null || name.trim().isEmpty() || phone == null || phone.trim().isEmpty()) {
             return false;
@@ -64,9 +64,6 @@ public class CustomerController {
         
         return customerOrders;
     }
-=======
-
->>>>>>> 75ce2adf654d2a1bb9d6fc74510e7302970206a6
 
     public static boolean addLoyaltyPoints(int customerId, int points) {
         ArrayList<Customer> allCustomers = FileManager.loadCustomers();
