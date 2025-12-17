@@ -316,12 +316,14 @@ public class AdminDashboard extends JFrame {
         JLabel passwordLabel = new JLabel("New Password: ");
         JPasswordField passwordField = new JPasswordField(10);
         JButton updateButton = new JButton("Update my Info");
+        JButton logout = new JButton("Logout");
 
         panel.add(userLabel);
         panel.add(userField);
         panel.add(passwordLabel);
         panel.add(passwordField);
         panel.add(updateButton);
+        panel.add(logout);
 
         updateButton.addActionListener(e -> {
             String newUser = userField.getText();
@@ -338,6 +340,12 @@ public class AdminDashboard extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Error updating profile.");
             }
+        });
+
+        logout.addActionListener(e -> {
+            LoginFrame login = new LoginFrame();
+            login.show();
+            this.dispose();
         });
 
         return panel;

@@ -12,6 +12,7 @@ public class LoginFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
+    private JButton customerButton;
     private UserController userController;
 
     public LoginFrame() {
@@ -53,8 +54,12 @@ public class LoginFrame {
         loginButton = new JButton("Login");
         loginButton.addActionListener(e -> performLogin());
 
+        customerButton = new JButton("login as customer");
+        customerButton.addActionListener(e -> openCustomer());
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(loginButton);
+        buttonPanel.add(customerButton);
 
         mainPanel.add(formPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -93,5 +98,10 @@ public class LoginFrame {
                 JOptionPane.showMessageDialog(null, "Unknown user role!");
             }
         });
+    }
+
+    private void openCustomer() {
+        frame.dispose();
+        new CustomerLogin().setVisible(true);
     }
 }
