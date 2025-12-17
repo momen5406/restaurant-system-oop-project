@@ -1,5 +1,9 @@
 package view;
 
+import controller.CustomerController;
+import model.Customer;
+import model.User;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -36,6 +40,22 @@ public class CustomerLogin extends JFrame {
     }
 
     private void performLogin() {
+        String phone = phoneField.getText();
 
+        Customer customer = CustomerController.login(phone);
+
+        if (customer == null) {
+            JOptionPane.showMessageDialog(this, "Phone not found!");
+            return;
+        }
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Welcome " + customer.getName()
+        );
+
+        this.dispose();
+
+        new CustomerProfile(customer).setVisible(true);
     }
 }

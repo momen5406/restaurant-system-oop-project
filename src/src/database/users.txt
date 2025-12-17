@@ -1,2 +1,0 @@
-1,admin,admin123,ADMIN
-2,employee,emp123,EMPLOYEE,Manager,3500.0
