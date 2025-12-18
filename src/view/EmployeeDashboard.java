@@ -605,6 +605,11 @@ public class EmployeeDashboard extends JFrame {
         
         String billResult = employeeController.generateBill(orderId, "CASH");
         
+        if (billResult != null) {
+            billResult = billResult.replace("No items found", "").trim();
+            billResult = billResult.replaceAll("\n{3,}", "\n\n");
+        }
+        
         JTextArea billArea = new JTextArea(billResult, 20, 60);
         billArea.setEditable(false);
         billArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -731,6 +736,10 @@ public class EmployeeDashboard extends JFrame {
                 if (selectedRow != -1) {
                     String billId = (String) billTableModel.getValueAt(selectedRow, 0);
                     String details = employeeController.getBillDetails(billId);
+                    if (details != null) {
+                        details = details.replace("No items found", "").trim();
+                        details = details.replaceAll("\n{3,}", "\n\n");
+                    }
                     billDetailsArea.setText(details);
                 }
             }
@@ -748,6 +757,11 @@ public class EmployeeDashboard extends JFrame {
         
         String billId = (String) billTableModel.getValueAt(selectedRow, 0);
         String details = employeeController.getBillDetails(billId);
+        
+        if (details != null) {
+            details = details.replace("No items found", "").trim();
+            details = details.replaceAll("\n{3,}", "\n\n");
+        }
         
         JTextArea detailsArea = new JTextArea(details, 20, 60);
         detailsArea.setEditable(false);
@@ -771,6 +785,11 @@ public class EmployeeDashboard extends JFrame {
                         billTable.scrollRectToVisible(billTable.getCellRect(i, 0, true));
                         
                         String details = employeeController.getBillDetails(billId.trim());
+                        if (details != null) {
+                            details = details.replace("No items found", "").trim();
+                            details = details.replaceAll("\n{3,}", "\n\n");
+                        }
+                        
                         JTextArea detailsArea = new JTextArea(details, 20, 60);
                         detailsArea.setEditable(false);
                         detailsArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -835,6 +854,11 @@ public class EmployeeDashboard extends JFrame {
                 if (selectedRow != -1) {
                     String billId = (String) model.getValueAt(selectedRow, 0);
                     String details = employeeController.getBillDetails(billId);
+                    
+                    if (details != null) {
+                        details = details.replace("No items found", "").trim();
+                        details = details.replaceAll("\n{3,}", "\n\n");
+                    }
                     
                     JTextArea detailsArea = new JTextArea(details, 20, 60);
                     detailsArea.setEditable(false);
