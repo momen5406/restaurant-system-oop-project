@@ -201,15 +201,7 @@ public class EmployeeDashboard extends JFrame {
         }
 
         for (Customer customer : customers) {
-            int orderCount = 0;
-            try {
-                ArrayList<String> orderIds = customer.getOrderIds();
-                if (orderIds != null) {
-                    orderCount = orderIds.size();
-                }
-            } catch (Exception e) {
-                orderCount = 0;
-            }
+            int orderCount = customer.getOrderIds().size();
             
             Object[] row = {
                 customer.getId(),
@@ -232,7 +224,7 @@ public class EmployeeDashboard extends JFrame {
     private JPanel createOrderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        String[] columns = {"Order ID", "Customer ID", "Date", "Status", "Total (EGP)", "Items"};
+        String[] columns = {"Order ID", "Customer ID", "Date", "Status", "Total (EGP)"};
         orderTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -636,22 +628,12 @@ public class EmployeeDashboard extends JFrame {
         }
 
         for (Order order : orders) {
-            int itemCount = 0;
-            try {
-                if (order.getItems() != null) {
-                    itemCount = order.getItems().size();
-                }
-            } catch (Exception e) {
-                itemCount = 0;
-            }
-            
             Object[] row = {
                 order.getOrderId(),
                 order.getCustomerId(),
                 order.getOrderDate(),
                 order.getStatus(),
-                String.format("%.2f", order.getTotalAmount()),
-                itemCount
+                String.format("%.2f", order.getTotalAmount())
             };
             orderTableModel.addRow(row);
         }
@@ -664,7 +646,7 @@ public class EmployeeDashboard extends JFrame {
         sb.append("Status: ").append(order.getStatus()).append("\n");
         sb.append("Total: ").append(String.format("%.2f", order.getTotalAmount())).append(" EGP\n");
         sb.append("Instructions: ").append(order.getSpecialInstructions() != null ? order.getSpecialInstructions() : "None").append("\n\n");
-        sb.append("ORDER ITEMS:\n");
+        sb.append(" ");
         
         if (order.getItems() != null && !order.getItems().isEmpty()) {
             for (OrderItem item : order.getItems()) {
@@ -676,7 +658,7 @@ public class EmployeeDashboard extends JFrame {
                 sb.append("----------------------------------------\n");
             }
         } else {
-            sb.append("No items found for this order.\n");
+            sb.append(" ");
         }
         
         orderItemsArea.setText(sb.toString());
@@ -1009,16 +991,7 @@ public class EmployeeDashboard extends JFrame {
         sb.append(String.format("Phone:         %s\n", customer.getPhoneNumber()));
         sb.append(String.format("Loyalty Points:%d\n", customer.getLoyaltyPoints()));
         
-        int orderCount = 0;
-        try {
-            ArrayList<String> orderIds = customer.getOrderIds();
-            if (orderIds != null) {
-                orderCount = orderIds.size();
-            }
-        } catch (Exception e) {
-            orderCount = 0;
-        }
-        
+        int orderCount = customer.getOrderIds().size();
         sb.append(String.format("Total Orders:  %d\n", orderCount));
         sb.append("═══════════════════════════════════════════════════════════\n");
         
