@@ -17,7 +17,6 @@ public class CustomerController {
         return null;
     }
 
-
     public static boolean register(String name, String phone) {
         if (name == null || name.trim().isEmpty() || phone == null || phone.trim().isEmpty()) {
             return false;
@@ -148,5 +147,31 @@ public class CustomerController {
             e.printStackTrace();
         }
         return messages;
+    }
+    
+    public static ArrayList<String> getCustomerGifts(int customerId) {
+        ArrayList<Customer> allCustomers = FileManager.loadCustomers();
+        for (Customer customer : allCustomers) {
+            if (customer.getId() == customerId) {
+                return customer.getRedeemedGifts();
+            }
+        }
+        return new ArrayList<>();
+    }
+    
+    public static boolean redeemGift(int customerId, String giftName, int pointsCost) {
+        ArrayList<Customer> allCustomers = FileManager.loadCustomers();
+        
+        for (Customer customer : allCustomers) {
+            if (customer.getId() == customerId) {
+                if (customer.getLoyaltyPoints() >= pointsCost) {
+                    customer.addLoyaltyPoints(-pointsCost);
+                    customer.addRedeemedGift(giftName);
+                    FileManager.saveCustomers(allCustomers);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
