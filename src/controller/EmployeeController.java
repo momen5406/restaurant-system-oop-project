@@ -12,21 +12,17 @@ public class EmployeeController {
     public boolean addCustomer(int id, String name, String phoneNumber) {
         try {
             ArrayList<Customer> customers = FileManager.loadCustomers();
-            
             for (Customer customer : customers) {
                 if (customer.getId() == id) {
                     JOptionPane.showMessageDialog(null, "Customer ID already exists!");
                     return false;
                 }
             }
-            
             Customer newCustomer = new Customer(id, name, phoneNumber);
             customers.add(newCustomer);
             FileManager.saveCustomers(customers);
-            
             JOptionPane.showMessageDialog(null, "Customer added successfully!");
             return true;
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error adding customer: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
@@ -38,7 +34,6 @@ public class EmployeeController {
         try {
             ArrayList<Customer> customers = FileManager.loadCustomers();
             boolean removed = customers.removeIf(customer -> customer.getId() == id);
-
             if (removed) {
                 FileManager.saveCustomers(customers);
                 JOptionPane.showMessageDialog(null, "Customer deleted successfully!");
@@ -58,7 +53,6 @@ public class EmployeeController {
         try {
             ArrayList<Customer> customers = FileManager.loadCustomers();
             boolean found = false;
-
             for (Customer customer : customers) {
                 if (customer.getId() == id) {
                     customer.setName(name);
@@ -67,7 +61,6 @@ public class EmployeeController {
                     break;
                 }
             }
-
             if (found) {
                 FileManager.saveCustomers(customers);
                 JOptionPane.showMessageDialog(null, "Customer updated successfully!");
@@ -85,8 +78,7 @@ public class EmployeeController {
 
     public ArrayList<Customer> getAllCustomers() {
         try {
-            ArrayList<Customer> customers = FileManager.loadCustomers();
-            return customers;
+            return FileManager.loadCustomers();
         } catch (Exception e) {
             System.err.println("[Controller] Error loading customers: " + e.getMessage());
             return new ArrayList<>();
@@ -125,58 +117,46 @@ public class EmployeeController {
     
     public boolean makeOrder(int customerId, ArrayList<OrderItem> items, String instructions) {
         try {
-            ArrayList<Customer> customers = FileManager.loadCustomers();
+            ArrayList<Customer> allCustomers = FileManager.loadCustomers();
+            ArrayList<Order> allOrders = FileManager.loadOrders();
             Customer customer = null;
             int customerIndex = -1;
-            
-            for (int i = 0; i < customers.size(); i++) {
-                if (customers.get(i).getId() == customerId) {
-                    customer = customers.get(i);
+            for (int i = 0; i < allCustomers.size(); i++) {
+                if (allCustomers.get(i).getId() == customerId) {
+                    customer = allCustomers.get(i);
                     customerIndex = i;
                     break;
                 }
             }
-            
             if (customer == null) {
                 JOptionPane.showMessageDialog(null, "Error: Customer not found!");
                 return false;
             }
-            
             if (items == null || items.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Error: Order must have at least one item!");
                 return false;
             }
-            
             double totalAmount = 0;
             for (OrderItem item : items) {
                 totalAmount += item.getPrice() * item.getQuantity();
             }
-            
             String orderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-            
             Date orderDate = new Date();
             Order newOrder = new Order(orderId, customerId, orderDate, items, "PENDING", totalAmount);
             if (instructions != null && !instructions.trim().isEmpty()) {
                 newOrder.setSpecialInstructions(instructions);
             }
-            
-            ArrayList<Order> orders = FileManager.loadOrders();
-            orders.add(newOrder);
-            FileManager.saveOrders(orders);
-            
+            allOrders.add(newOrder);
+            FileManager.saveOrders(allOrders);
             customer.addOrderId(orderId);
-            
             int loyaltyPointsEarned = (int)(totalAmount / 10);
             if (loyaltyPointsEarned > 0) {
                 customer.addLoyaltyPoints(loyaltyPointsEarned);
             }
-            
-            customers.set(customerIndex, customer);
-            FileManager.saveCustomers(customers);
-            
+            allCustomers.set(customerIndex, customer);
+            FileManager.saveCustomers(allCustomers);
             JOptionPane.showMessageDialog(null, "Order created successfully! Order ID: " + orderId);
             return true;
-            
         } catch (Exception e) {
             System.err.println("[Controller] ERROR in makeOrder: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error creating order: " + e.getMessage());
@@ -186,28 +166,22 @@ public class EmployeeController {
     
     public boolean addCheesecakeGift(String orderId) {
         try {
-            ArrayList<Order> orders = FileManager.loadOrders();
-            
-            for (Order order : orders) {
+            ArrayList<Order> allOrders = FileManager.loadOrders();
+            for (Order order : allOrders) {
                 if (order.getOrderId().equals(orderId)) {
                     if (order.getStatus().equals("CANCELLED") || order.getStatus().equals("COMPLETED")) {
                         JOptionPane.showMessageDialog(null, "Cannot add gift to " + order.getStatus().toLowerCase() + " order!");
                         return false;
                     }
-                    
                     OrderItem cheesecake = new OrderItem("GIFT001", "Cheesecake (Gift)", "Dessert", 0.0, 1);
                     order.getItems().add(cheesecake);
-                    
-                    FileManager.saveOrders(orders);
-                    
+                    FileManager.saveOrders(allOrders);
                     JOptionPane.showMessageDialog(null, "Free Cheesecake added to order!");
                     return true;
                 }
             }
-            
             JOptionPane.showMessageDialog(null, "Order not found!");
             return false;
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error adding cheesecake gift: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error adding gift: " + e.getMessage());
@@ -217,9 +191,8 @@ public class EmployeeController {
     
     public boolean cancelOrder(String orderId) {
         try {
-            ArrayList<Order> orders = FileManager.loadOrders();
-            
-            for (Order order : orders) {
+            ArrayList<Order> allOrders = FileManager.loadOrders();
+            for (Order order : allOrders) {
                 if (order.getOrderId().equals(orderId)) {
                     if (order.getStatus().equals("COMPLETED")) {
                         JOptionPane.showMessageDialog(null, "Cannot cancel a completed order!");
@@ -229,16 +202,13 @@ public class EmployeeController {
                         JOptionPane.showMessageDialog(null, "Order is already cancelled!");
                         return false;
                     }
-                    
                     order.setStatus("CANCELLED");
-                    FileManager.saveOrders(orders);
+                    FileManager.saveOrders(allOrders);
                     return true;
                 }
             }
-            
             JOptionPane.showMessageDialog(null, "Order not found!");
             return false;
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error cancelling order: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error cancelling order: " + e.getMessage());
@@ -248,38 +218,32 @@ public class EmployeeController {
     
     public boolean deleteOrder(String orderId) {
         try {
-            ArrayList<Order> orders = FileManager.loadOrders();
-            
+            ArrayList<Order> allOrders = FileManager.loadOrders();
+            ArrayList<Customer> allCustomers = FileManager.loadCustomers();
             Order orderToDelete = null;
-            for (Order order : orders) {
+            for (Order order : allOrders) {
                 if (order.getOrderId().equals(orderId)) {
                     orderToDelete = order;
                     break;
                 }
             }
-            
             if (orderToDelete == null) {
                 JOptionPane.showMessageDialog(null, "Order not found!");
                 return false;
             }
-            
-            boolean removed = orders.removeIf(order -> order.getOrderId().equals(orderId));
+            boolean removed = allOrders.removeIf(order -> order.getOrderId().equals(orderId));
             if (removed) {
-                FileManager.saveOrders(orders);
-                
-                ArrayList<Customer> customers = FileManager.loadCustomers();
-                for (Customer customer : customers) {
+                FileManager.saveOrders(allOrders);
+                for (Customer customer : allCustomers) {
                     if (customer.getId() == orderToDelete.getCustomerId()) {
                         customer.removeOrderId(orderId);
                         break;
                     }
                 }
-                FileManager.saveCustomers(customers);
-                
+                FileManager.saveCustomers(allCustomers);
                 return true;
             }
             return false;
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error deleting order: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error deleting order: " + e.getMessage());
@@ -304,8 +268,7 @@ public class EmployeeController {
     
     public ArrayList<Order> getAllOrders() {
         try {
-            ArrayList<Order> orders = FileManager.loadOrders();
-            return orders;
+            return FileManager.loadOrders();
         } catch (Exception e) {
             System.err.println("[Controller] Error loading orders: " + e.getMessage());
             return new ArrayList<>();
@@ -314,8 +277,7 @@ public class EmployeeController {
     
     public int getTotalOrderCount() {
         try {
-            ArrayList<Order> orders = getAllOrders();
-            return orders.size();
+            return getAllOrders().size();
         } catch (Exception e) {
             System.err.println("[Controller] Error getting total order count: " + e.getMessage());
             return 0;
@@ -342,36 +304,31 @@ public class EmployeeController {
     
     public boolean updateOrderStatus(String orderId, String newStatus) {
         try {
-            ArrayList<Order> orders = FileManager.loadOrders();
-            
-            for (Order order : orders) {
+            ArrayList<Order> allOrders = FileManager.loadOrders();
+            ArrayList<Customer> allCustomers = FileManager.loadCustomers();
+            for (Order order : allOrders) {
                 if (order.getOrderId().equals(orderId)) {
                     if (order.getStatus().equals("CANCELLED")) {
                         JOptionPane.showMessageDialog(null, "Cannot update a cancelled order!");
                         return false;
                     }
-                    
                     if (newStatus.equals("COMPLETED") && !order.getStatus().equals("COMPLETED")) {
-                        ArrayList<Customer> customers = FileManager.loadCustomers();
-                        for (Customer customer : customers) {
+                        for (Customer customer : allCustomers) {
                             if (customer.getId() == order.getCustomerId()) {
                                 int pointsEarned = (int)(order.getTotalAmount() / 10);
                                 customer.addLoyaltyPoints(pointsEarned);
-                                FileManager.saveCustomers(customers);
+                                FileManager.saveCustomers(allCustomers);
                                 break;
                             }
                         }
                     }
-                    
                     order.setStatus(newStatus);
-                    FileManager.saveOrders(orders);
+                    FileManager.saveOrders(allOrders);
                     return true;
                 }
             }
-            
             JOptionPane.showMessageDialog(null, "Order not found!");
             return false;
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error updating order: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error updating order: " + e.getMessage());
@@ -385,7 +342,6 @@ public class EmployeeController {
             if (order == null) {
                 return "Order not found!";
             }
-            
             StringBuilder details = new StringBuilder();
             details.append("=== ORDER DETAILS ===\n");
             details.append("Order ID: ").append(order.getOrderId()).append("\n");
@@ -394,15 +350,12 @@ public class EmployeeController {
             details.append("Status: ").append(order.getStatus()).append("\n");
             details.append("Total: ").append(String.format("%.2f", order.getTotalAmount())).append(" EGP\n");
             details.append("Instructions: ").append(order.getSpecialInstructions() != null ? order.getSpecialInstructions() : "None").append("\n");
-            
             if (order.getItems() != null && !order.getItems().isEmpty()) {
                 details.append("\n=== ORDER ITEMS ===\n");
                 double total = 0;
                 for (OrderItem item : order.getItems()) {
                     double subtotal = item.getPrice() * item.getQuantity();
-                    details.append("• ").append(item.getQuantity()).append("x ")
-                           .append(item.getName()).append(" (")
-                           .append(item.getCategory()).append(")\n");
+                    details.append("• ").append(item.getQuantity()).append("x ").append(item.getName()).append(" (").append(item.getCategory()).append(")\n");
                     details.append("  Price: ").append(String.format("%.2f", item.getPrice())).append(" EGP each\n");
                     details.append("  Subtotal: ").append(String.format("%.2f", subtotal)).append(" EGP\n");
                     details.append("  ------------------------------\n");
@@ -412,9 +365,7 @@ public class EmployeeController {
             } else {
                 details.append("\nNo items found in this order\n");
             }
-            
             return details.toString();
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error getting order details: " + e.getMessage());
             return "Error loading order details: " + e.getMessage();
@@ -427,27 +378,18 @@ public class EmployeeController {
             if (order == null) {
                 return "Order not found!";
             }
-            
             Customer customer = searchCustomerById(order.getCustomerId());
             if (customer == null) {
                 return "Customer not found!";
             }
-            
             String billId = "BILL-" + System.currentTimeMillis();
-            
             Date billDate = new Date();
-            Bill bill = new Bill(billId, orderId, customer.getId(), 
-                                customer.getName(), customer.getPhoneNumber(),
-                                billDate, order.getTotalAmount(), paymentMethod);
-            
+            Bill bill = new Bill(billId, orderId, customer.getId(), customer.getName(), customer.getPhoneNumber(), billDate, order.getTotalAmount(), paymentMethod);
             ArrayList<Bill> bills = FileManager.loadBills();
             bills.add(bill);
             FileManager.saveBills(bills);
-            
             updateOrderStatus(orderId, "COMPLETED");
-            
             return bill.getFormattedBill();
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error generating bill: " + e.getMessage());
             return "Error generating bill: " + e.getMessage();
@@ -456,8 +398,7 @@ public class EmployeeController {
     
     public ArrayList<Bill> getAllBills() {
         try {
-            ArrayList<Bill> bills = FileManager.loadBills();
-            return bills;
+            return FileManager.loadBills();
         } catch (Exception e) {
             System.err.println("[Controller] Error loading bills: " + e.getMessage());
             return new ArrayList<>();
@@ -483,7 +424,6 @@ public class EmployeeController {
         try {
             ArrayList<Bill> bills = FileManager.loadBills();
             ArrayList<Bill> customerBills = new ArrayList<>();
-            
             for (Bill bill : bills) {
                 if (bill.getCustomerId() == customerId) {
                     customerBills.add(bill);
@@ -499,7 +439,6 @@ public class EmployeeController {
     public boolean deleteBill(String billId) {
         try {
             ArrayList<Bill> bills = FileManager.loadBills();
-            
             Bill billToDelete = null;
             for (Bill bill : bills) {
                 if (bill.getBillId().equals(billId)) {
@@ -507,12 +446,10 @@ public class EmployeeController {
                     break;
                 }
             }
-            
             if (billToDelete == null) {
                 JOptionPane.showMessageDialog(null, "Bill not found!");
                 return false;
             }
-            
             Order order = getOrderById(billToDelete.getOrderId());
             if (order != null && order.getStatus().equals("COMPLETED")) {
                 order.setStatus("SERVED");
@@ -525,14 +462,12 @@ public class EmployeeController {
                 }
                 FileManager.saveOrders(orders);
             }
-            
             boolean removed = bills.removeIf(bill -> bill.getBillId().equals(billId));
             if (removed) {
                 FileManager.saveBills(bills);
                 return true;
             }
             return false;
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error deleting bill: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error deleting bill: " + e.getMessage());
@@ -546,26 +481,20 @@ public class EmployeeController {
             if (bill == null) {
                 return "Bill not found!";
             }
-            
             Order order = getOrderById(bill.getOrderId());
-            
             StringBuilder details = new StringBuilder();
             details.append("=== BILL DETAILS ===\n");
             details.append("Bill ID: ").append(bill.getBillId()).append("\n");
             details.append("Order ID: ").append(bill.getOrderId()).append("\n");
-            details.append("Customer: ").append(bill.getCustomerName())
-                   .append(" (ID: ").append(bill.getCustomerId()).append(")\n");
+            details.append("Customer: ").append(bill.getCustomerName()).append(" (ID: ").append(bill.getCustomerId()).append(")\n");
             details.append("Phone: ").append(bill.getPhoneNumber()).append("\n");
             details.append("Date: ").append(bill.getBillDate()).append("\n");
             details.append("Payment Method: ").append(bill.getPaymentMethod()).append("\n");
-            
             if (order != null && order.getItems() != null && !order.getItems().isEmpty()) {
                 details.append("\n=== ORDER ITEMS ===\n");
                 for (OrderItem item : order.getItems()) {
                     double subtotal = item.getPrice() * item.getQuantity();
-                    details.append("• ").append(item.getQuantity()).append("x ")
-                           .append(item.getName()).append(" (")
-                           .append(item.getCategory()).append(")\n");
+                    details.append("• ").append(item.getQuantity()).append("x ").append(item.getName()).append(" (").append(item.getCategory()).append(")\n");
                     details.append("  Price: ").append(String.format("%.2f", item.getPrice())).append(" EGP each\n");
                     details.append("  Subtotal: ").append(String.format("%.2f", subtotal)).append(" EGP\n");
                     details.append("  ------------------------------\n");
@@ -573,16 +502,13 @@ public class EmployeeController {
             } else {
                 details.append("\nNo items found for this bill\n");
             }
-            
             details.append("\n=== PAYMENT SUMMARY ===\n");
             details.append(String.format("Subtotal: %20.2f EGP\n", bill.getTotalAmount()));
             details.append(String.format("Tax (14%%): %19.2f EGP\n", bill.getTaxAmount()));
             details.append(String.format("Discount: %20.2f EGP\n", bill.getDiscountAmount()));
             details.append(String.format("Final Amount: %16.2f EGP\n", bill.getFinalAmount()));
             details.append("========================\n");
-            
             return details.toString();
-            
         } catch (Exception e) {
             System.err.println("[Controller] Error getting bill details: " + e.getMessage());
             return "Error loading bill details: " + e.getMessage();
@@ -592,13 +518,11 @@ public class EmployeeController {
     public ArrayList<OrderItem> parseOrderItems(String itemsText) {
         ArrayList<OrderItem> items = new ArrayList<>();
         String[] lines = itemsText.split("\n");
-        
         for (String line : lines) {
             line = line.trim();
             if (line.isEmpty() || line.startsWith("//")) {
                 continue;
             }
-            
             String[] parts = line.split(",");
             if (parts.length >= 5) {
                 try {
@@ -607,15 +531,12 @@ public class EmployeeController {
                     String category = parts[2].trim();
                     double price = Double.parseDouble(parts[3].trim());
                     int quantity = Integer.parseInt(parts[4].trim());
-                    
-                    OrderItem item = new OrderItem(itemId, name, category, price, quantity);
-                    items.add(item);
+                    items.add(new OrderItem(itemId, name, category, price, quantity));
                 } catch (NumberFormatException e) {
                     System.err.println("[Controller] Invalid item format: " + line);
                 }
             }
         }
-        
         return items;
     }
     
