@@ -201,27 +201,7 @@ public class CustomerProfile extends JFrame {
         offersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane offersScroll = new JScrollPane(offersList);
         
-        JButton claimOfferBtn = new JButton("Claim Offer");
-        claimOfferBtn.addActionListener(e -> {
-            int selectedIndex = offersList.getSelectedIndex();
-            if (selectedIndex >= 0 && selectedIndex < offers.size()) {
-                Offer selectedOffer = offers.get(selectedIndex);
-                boolean success = CustomerController.claimOffer(customer.getId(), selectedOffer.getId());
-                if (success) {
-                    customer = CustomerController.login(customer.getPhoneNumber());
-                    savedOffersLabel.setText(String.valueOf(customer.getSavedOffers().size()));
-                    JOptionPane.showMessageDialog(this, "Offer claimed: " + selectedOffer.getName());
-                    updateOffersTab();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Select an offer to claim");
-            }
-        });
-        
-        JPanel offersButtonPanel = new JPanel();
-        offersButtonPanel.add(claimOfferBtn);
         availableOffersPanel.add(offersScroll, BorderLayout.CENTER);
-        availableOffersPanel.add(offersButtonPanel, BorderLayout.SOUTH);
 
         JPanel marketingOffersPanel = new JPanel(new BorderLayout());
         marketingOffersPanel.setBorder(BorderFactory.createTitledBorder("Marketing Messages"));
@@ -252,40 +232,8 @@ public class CustomerProfile extends JFrame {
         topPanel.add(availableOffersPanel);
         topPanel.add(marketingOffersPanel);
 
-        JPanel savedOffersPanel = new JPanel(new BorderLayout());
-        savedOffersPanel.setBorder(BorderFactory.createTitledBorder("Your Saved Offers"));
-        JTextArea savedOffersArea = new JTextArea(8, 50);
-        savedOffersArea.setEditable(false);
-        savedOffersArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        JScrollPane savedOffersScroll = new JScrollPane(savedOffersArea);
-        updateSavedOffersArea(savedOffersArea);
-        savedOffersPanel.add(savedOffersScroll, BorderLayout.CENTER);
-
         offersPanel.add(topPanel, BorderLayout.CENTER);
-        offersPanel.add(savedOffersPanel, BorderLayout.SOUTH);
 
         tabbedPane.addTab("Offers", offersPanel);
-    }
-
-    private void updateSavedOffersArea(JTextArea savedOffersArea) {
-        StringBuilder savedOffersText = new StringBuilder();
-        for (String offer : customer.getSavedOffers()) {
-            savedOffersText.append("• ").append(offer).append("\n");
-        }
-        if (customer.getSavedOffers().isEmpty()) {
-            savedOffersText.append("No saved offers");
-        }
-        savedOffersArea.setText(savedOffersText.toString());
-    }
-
-    private void updateOffersTab() {
-        int offersTabIndex = 3;
-        if (tabbedPane.getTabCount() > offersTabIndex) {
-            JPanel offersPanel = (JPanel) tabbedPane.getComponentAt(offersTabIndex);
-            JPanel savedOffersPanel = (JPanel) ((JPanel) offersPanel.getComponent(0)).getComponent(1);
-            JScrollPane savedOffersScroll = (JScrollPane) savedOffersPanel.getComponent(0);
-            JTextArea savedOffersArea = (JTextArea) savedOffersScroll.getViewport().getView();
-            updateSavedOffersArea(savedOffersArea);
-        }
     }
 }
