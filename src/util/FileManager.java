@@ -102,24 +102,35 @@ public class FileManager {
                         String name = parts[1];
                         String phone = parts[2];
                         Customer customer = new Customer(id, name, phone);
+                        
                         if (parts.length > 3) {
                             try {
                                 int points = Integer.parseInt(parts[3]);
                                 customer.setLoyaltyPoints(points);
                             } catch (NumberFormatException e) {}
                         }
+                        
                         if (parts.length > 4 && !parts[4].isEmpty()) {
                             String[] orderIds = parts[4].split(";");
                             for (String orderId : orderIds) {
                                 if (!orderId.trim().isEmpty()) customer.addOrderId(orderId.trim());
                             }
                         }
+                        
                         if (parts.length > 5 && !parts[5].isEmpty()) {
                             String[] savedOffers = parts[5].split(";");
                             for (String offer : savedOffers) {
                                 if (!offer.trim().isEmpty()) customer.addSavedOffer(offer.trim());
                             }
                         }
+                        
+                        if (parts.length > 6 && !parts[6].isEmpty()) {
+                            String[] redeemedGifts = parts[6].split(";");
+                            for (String gift : redeemedGifts) {
+                                if (!gift.trim().isEmpty()) customer.addRedeemedGift(gift.trim());
+                            }
+                        }
+                        
                         customers.add(customer);
                     } catch (NumberFormatException e) {
                         System.err.println("[FileManager] Invalid customer ID format: " + parts[0]);
@@ -136,11 +147,27 @@ public class FileManager {
     public static void saveCustomers(ArrayList<Customer> customers) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(CUSTOMERS_FILE))) {
             for (Customer customer : customers) {
-                String line = customer.getId() + "," + customer.getName() + "," + customer.getPhoneNumber() + "," + customer.getLoyaltyPoints() + ",";
-                if (customer.getOrderIds() != null && !customer.getOrderIds().isEmpty()) line += String.join(";", customer.getOrderIds()) + ",";
-                else line += ",";
-                if (customer.getSavedOffers() != null && !customer.getSavedOffers().isEmpty()) line += String.join(";", customer.getSavedOffers());
-                writer.println(line);
+                StringBuilder line = new StringBuilder();
+                line.append(customer.getId()).append(",")
+                    .append(customer.getName()).append(",")
+                    .append(customer.getPhoneNumber()).append(",")
+                    .append(customer.getLoyaltyPoints()).append(",");
+                
+                if (customer.getOrderIds() != null && !customer.getOrderIds().isEmpty()) {
+                    line.append(String.join(";", customer.getOrderIds()));
+                }
+                line.append(",");
+                
+                if (customer.getSavedOffers() != null && !customer.getSavedOffers().isEmpty()) {
+                    line.append(String.join(";", customer.getSavedOffers()));
+                }
+                line.append(",");
+                
+                if (customer.getRedeemedGifts() != null && !customer.getRedeemedGifts().isEmpty()) {
+                    line.append(String.join(";", customer.getRedeemedGifts()));
+                }
+                
+                writer.println(line.toString());
             }
         } catch (IOException e) {
             System.err.println("[FileManager] Error saving customers: " + e.getMessage());
