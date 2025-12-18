@@ -57,7 +57,7 @@ public class CustomerController {
         ArrayList<Order> customerOrders = new ArrayList<>();
         
         for (Order order : allOrders) {
-            if (String.valueOf(order.getCustomerId()).equals(String.valueOf(customerId))) {
+            if (order.getCustomerId() == customerId) {
                 customerOrders.add(order);
             }
         }

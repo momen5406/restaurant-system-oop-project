@@ -348,7 +348,7 @@ public class EmployeeDashboard extends JFrame {
             }
         }
     }
-    
+
     private void showCreateOrderDialog() {
         String customerIdText = orderCustomerIdField.getText().trim();
         if (customerIdText.isEmpty()) {
@@ -357,106 +357,184 @@ public class EmployeeDashboard extends JFrame {
                 return;
             }
         }
-        
+
         try {
             int customerId = Integer.parseInt(customerIdText);
-            
             Customer customer = employeeController.searchCustomerById(customerId);
+
             if (customer == null) {
                 JOptionPane.showMessageDialog(this, "Customer not found with ID: " + customerId);
                 return;
             }
-            
-            JDialog dialog = new JDialog(this, "Create New Order for " + customer.getName(), true);
-            dialog.setSize(500, 400);
+
+            JDialog dialog = new JDialog(this, "New Order for: " + customer.getName(), true);
+            dialog.setSize(900, 600);
             dialog.setLocationRelativeTo(this);
-            dialog.setLayout(new BorderLayout());
-            
-            JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-            mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            
-            JPanel itemsPanel = new JPanel(new BorderLayout());
-            itemsPanel.setBorder(BorderFactory.createTitledBorder("Order Items (Format: itemId,name,category,price,quantity)"));
-            
-            JTextArea itemsArea = new JTextArea(8, 40);
-            itemsArea.setText("P001,Pizza,Main Course,120.0,2\nD001,Coke,Beverage,20.0,3\nB001,Burger,Main Course,80.0,1");
-            JScrollPane itemsScroll = new JScrollPane(itemsArea);
-            itemsPanel.add(itemsScroll, BorderLayout.CENTER);
-            
+            dialog.setLayout(new BorderLayout(10, 10));
+
+            JPanel menuPanel = new JPanel(new BorderLayout());
+            menuPanel.setBorder(BorderFactory.createTitledBorder("Menu / Available Meals"));
+
+            String[] menuCols = {"ID", "Name", "Category", "Price"};
+            DefaultTableModel menuModel = new DefaultTableModel(menuCols, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) { return false; }
+            };
+            JTable menuTable = new JTable(menuModel);
+
+            ArrayList<Meal> meals = employeeController.getAllMeals(); // Make sure this method exists in Controller
+            for (Meal m : meals) {
+                menuModel.addRow(new Object[]{m.getMealID(), m.getName(), m.getCategory(), m.getPrice()});
+            }
+            menuPanel.add(new JScrollPane(menuTable), BorderLayout.CENTER);
+
+            JPanel cartPanel = new JPanel(new BorderLayout());
+            cartPanel.setBorder(BorderFactory.createTitledBorder("Current Order Cart"));
+
+            String[] cartCols = {"ID", "Name", "Category", "Price", "Qty", "Total"};
+            DefaultTableModel cartModel = new DefaultTableModel(cartCols, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) { return false; }
+            };
+            JTable cartTable = new JTable(cartModel);
+            JScrollPane cartScroll = new JScrollPane(cartTable);
+            cartPanel.add(cartScroll, BorderLayout.CENTER);
+
+            JLabel totalLabel = new JLabel("Total: 0.00 EGP");
+            totalLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+            cartPanel.add(totalLabel, BorderLayout.SOUTH);
+
+            JPanel controlsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 50, 1));
+            JButton addToCartBtn = new JButton("Add >>");
+            JButton removeFromCartBtn = new JButton("<< Remove");
+
+            controlsPanel.add(new JLabel("Qty:"));
+            controlsPanel.add(qtySpinner);
+            controlsPanel.add(addToCartBtn);
+            controlsPanel.add(removeFromCartBtn);
+
+            JPanel bottomPanel = new JPanel(new BorderLayout());
             JPanel instructionsPanel = new JPanel(new BorderLayout());
             instructionsPanel.setBorder(BorderFactory.createTitledBorder("Special Instructions"));
-            
             JTextArea instructionsArea = new JTextArea(3, 40);
-            JScrollPane instructionsScroll = new JScrollPane(instructionsArea);
-            instructionsPanel.add(instructionsScroll, BorderLayout.CENTER);
-            
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-            JButton createBtn = new JButton("Create Order");
+            instructionsPanel.add(new JScrollPane(instructionsArea), BorderLayout.CENTER);
+
+            JPanel actionBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton createOrderBtn = new JButton("Confirm & Create Order");
             JButton cancelBtn = new JButton("Cancel");
-            JButton addCheesecakeBtn = new JButton("Add Cheesecake Gift");
-            
-            createBtn.addActionListener(e -> {
-                try {
-                    String instructions = instructionsArea.getText().trim();
-                    ArrayList<OrderItem> items = new ArrayList<>();
-                    
-                    String[] lines = itemsArea.getText().split("\n");
-                    for (String line : lines) {
-                        if (!line.trim().isEmpty()) {
-                            String[] parts = line.split(",");
-                            if (parts.length >= 5) {
-                                String itemId = parts[0].trim();
-                                String name = parts[1].trim();
-                                String category = parts[2].trim();
-                                double price = Double.parseDouble(parts[3].trim());
-                                int quantity = Integer.parseInt(parts[4].trim());
-                                
-                                items.add(new OrderItem(itemId, name, category, price, quantity));
-                            }
-                        }
+
+            actionBtnPanel.add(createOrderBtn);
+            actionBtnPanel.add(cancelBtn);
+
+            bottomPanel.add(instructionsPanel, BorderLayout.CENTER);
+            bottomPanel.add(actionBtnPanel, BorderLayout.SOUTH);
+
+            // --- LOGIC: Add Item to Cart ---
+            addToCartBtn.addActionListener(e -> {
+                int selectedRow = menuTable.getSelectedRow();
+                if (selectedRow == -1) {
+                    JOptionPane.showMessageDialog(dialog, "Select a meal from the Menu first.");
+                    return;
+                }
+
+                String id = String.valueOf(menuModel.getValueAt(selectedRow, 0));
+
+                String name = (String) menuModel.getValueAt(selectedRow, 1);
+                String cat = (String) menuModel.getValueAt(selectedRow, 2);
+
+                Object priceObj = menuModel.getValueAt(selectedRow, 3);
+                double price = Double.parseDouble(String.valueOf(priceObj));
+
+                int qty = (Integer) qtySpinner.getValue();
+
+                boolean exists = false;
+                for (int i = 0; i < cartModel.getRowCount(); i++) {
+                    String existingId = String.valueOf(cartModel.getValueAt(i, 0));
+
+                    if (existingId.equals(id)) {
+                        int currentQty = (Integer) cartModel.getValueAt(i, 4);
+                        int newQty = currentQty + qty;
+                        cartModel.setValueAt(newQty, i, 4);
+                        cartModel.setValueAt(newQty * price, i, 5);
+                        exists = true;
+                        break;
                     }
-                    
-                    if (items.isEmpty()) {
-                        JOptionPane.showMessageDialog(dialog, "Please add at least one item!");
-                        return;
-                    }
-                    
-                    boolean success = employeeController.makeOrder(customerId, items, instructions);
-                    if (success) {
-                        refreshOrderTable();
-                        refreshCustomerTable();
-                        orderCustomerIdField.setText("");
-                        dialog.dispose();
-                    }
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage());
+                }
+
+                if (!exists) {
+                    cartModel.addRow(new Object[]{id, name, cat, price, qty, price * qty});
+                }
+
+                updateDialogTotal(cartModel, totalLabel);
+            });
+
+            removeFromCartBtn.addActionListener(e -> {
+                int selectedRow = cartTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    cartModel.removeRow(selectedRow);
+                    updateDialogTotal(cartModel, totalLabel);
+                } else {
+                    JOptionPane.showMessageDialog(dialog, "Select an item from the Cart to remove.");
                 }
             });
-            
-            addCheesecakeBtn.addActionListener(e -> {
-                itemsArea.append("\nGIFT001,Cheesecake,Dessert,0.0,1");
-                JOptionPane.showMessageDialog(dialog, "Cheesecake added as free gift!");
+
+            createOrderBtn.addActionListener(e -> {
+                if (cartModel.getRowCount() == 0) {
+                    JOptionPane.showMessageDialog(dialog, "Cart is empty!");
+                    return;
+                }
+
+                ArrayList<OrderItem> items = new ArrayList<>();
+
+                for (int i = 0; i < cartModel.getRowCount(); i++) {
+                    String id = (String) cartModel.getValueAt(i, 0);
+                    String name = (String) cartModel.getValueAt(i, 1);
+                    String cat = (String) cartModel.getValueAt(i, 2);
+                    double price = (Double) cartModel.getValueAt(i, 3);
+                    int qty = (Integer) cartModel.getValueAt(i, 4);
+
+                    items.add(new OrderItem(id, name, cat, price, qty));
+                }
+
+                String instructions = instructionsArea.getText().trim();
+
+                boolean success = employeeController.makeOrder(customerId, items, instructions);
+                if (success) {
+                    refreshOrderTable();
+                    refreshCustomerTable();
+                    orderCustomerIdField.setText("");
+                    dialog.dispose();
+                    JOptionPane.showMessageDialog(this, "Order Created Successfully!");
+                }
             });
-            
+
             cancelBtn.addActionListener(e -> dialog.dispose());
-            
-            buttonPanel.add(createBtn);
-            buttonPanel.add(addCheesecakeBtn);
-            buttonPanel.add(cancelBtn);
-            
-            mainPanel.add(itemsPanel, BorderLayout.CENTER);
-            mainPanel.add(instructionsPanel, BorderLayout.SOUTH);
-            
-            JPanel bottomPanel = new JPanel(new BorderLayout());
-            bottomPanel.add(mainPanel, BorderLayout.CENTER);
-            bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
-            
-            dialog.add(bottomPanel);
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, menuPanel, cartPanel);
+            splitPane.setDividerLocation(400);
+
+            JPanel topContainer = new JPanel(new BorderLayout());
+            topContainer.add(splitPane, BorderLayout.CENTER);
+            topContainer.add(controlsPanel, BorderLayout.SOUTH);
+
+            dialog.add(topContainer, BorderLayout.CENTER);
+            dialog.add(bottomPanel, BorderLayout.SOUTH);
+
             dialog.setVisible(true);
-            
+
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Customer ID must be a number!");
         }
+    }
+
+    private void updateDialogTotal(DefaultTableModel cartModel, JLabel label) {
+        double total = 0;
+        for (int i = 0; i < cartModel.getRowCount(); i++) {
+            total += (Double) cartModel.getValueAt(i, 5);
+        }
+        label.setText("Total: " + String.format("%.2f", total) + " EGP");
     }
     
     private void cancelOrder() {

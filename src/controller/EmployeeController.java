@@ -122,6 +122,10 @@ public class EmployeeController {
             return null;
         }
     }
+
+    public ArrayList<Meal> getAllMeals() {
+        return FileManager.loadMeals();
+    }
     
     public boolean makeOrder(int customerId, ArrayList<OrderItem> items, String instructions) {
         try {

@@ -1,3 +1,4 @@
 1	شسي	12.0	ي	يس	false	سش	12
 2	asd	12.0	asdasd	asd	false	asd	12
 3	Smash Burger	150.0	Burger	fast	true	asdfn,adfs,adsf,adssf	10
+4	Fries	30.0	test		true	fries, oirl	5
