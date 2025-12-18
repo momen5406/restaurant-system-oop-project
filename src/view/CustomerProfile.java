@@ -15,12 +15,14 @@ public class CustomerProfile extends JFrame {
     private JLabel pointsLabel;
     private JLabel ordersLabel;
     private JLabel savedOffersLabel;
+    private JLabel giftsLabel;
     private JButton joinLoyaltyBtn;
+    private DefaultListModel<String> giftsListModel;
 
     public CustomerProfile(Customer customer) {
         this.customer = customer;
         setTitle("Customer Profile - " + customer.getName());
-        setSize(700, 550);
+        setSize(800, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -35,6 +37,7 @@ public class CustomerProfile extends JFrame {
         createOrdersTab();
         createProgramsTab();
         createOffersTab();
+        createGiftsTab();
         add(tabbedPane, BorderLayout.CENTER);
 
         JButton closeBtn = new JButton("Close");
@@ -45,7 +48,7 @@ public class CustomerProfile extends JFrame {
     }
 
     private void createProfileTab() {
-        JPanel profilePanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel profilePanel = new JPanel(new GridLayout(7, 2, 10, 10));
         profilePanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
         profilePanel.add(new JLabel("Customer ID:"));
@@ -69,6 +72,11 @@ public class CustomerProfile extends JFrame {
         profilePanel.add(new JLabel("Saved Offers:"));
         savedOffersLabel = new JLabel(String.valueOf(customer.getSavedOffers().size()));
         profilePanel.add(savedOffersLabel);
+        
+        profilePanel.add(new JLabel("Gifts Redeemed:"));
+        int giftsCount = CustomerController.getCustomerGifts(customer.getId()).size();
+        giftsLabel = new JLabel(String.valueOf(giftsCount));
+        profilePanel.add(giftsLabel);
         
         tabbedPane.addTab("Profile", profilePanel);
     }
@@ -235,5 +243,116 @@ public class CustomerProfile extends JFrame {
         offersPanel.add(topPanel, BorderLayout.CENTER);
 
         tabbedPane.addTab("Offers", offersPanel);
+    }
+
+    private void createGiftsTab() {
+        JPanel giftsPanel = new JPanel(new BorderLayout(10, 10));
+        giftsPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        JPanel pointsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel pointsInfo = new JLabel("Available Points: " + customer.getLoyaltyPoints());
+        pointsInfo.setFont(new Font("Arial", Font.BOLD, 14));
+        pointsPanel.add(pointsInfo);
+        topPanel.add(pointsPanel, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 15, 15));
+
+        JPanel availableGiftsPanel = new JPanel(new BorderLayout());
+        availableGiftsPanel.setBorder(BorderFactory.createTitledBorder("Available Gifts"));
+
+        DefaultListModel<String> giftsModel = new DefaultListModel<>();
+        giftsModel.addElement("Free Coffee - 50 points");
+        giftsModel.addElement("Free Soft Drink - 75 points");
+        giftsModel.addElement("French Fries - 100 points");
+        giftsModel.addElement("Garlic Bread - 120 points");
+        giftsModel.addElement("Chicken Wings - 150 points");
+        giftsModel.addElement("Caesar Salad - 180 points");
+        giftsModel.addElement("Burger - 200 points");
+        giftsModel.addElement("Pizza Slice - 250 points");
+        giftsModel.addElement("Pasta Meal - 300 points");
+        giftsModel.addElement("Steak Dinner - 500 points");
+        giftsModel.addElement("Seafood Platter - 600 points");
+
+        JList<String> giftsList = new JList<>(giftsModel);
+        JScrollPane giftsScroll = new JScrollPane(giftsList);
+        availableGiftsPanel.add(giftsScroll, BorderLayout.CENTER);
+
+        JPanel redeemPanel = new JPanel(new BorderLayout());
+        redeemPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        JButton redeemBtn = new JButton("Redeem Gift");
+        redeemBtn.addActionListener(e -> {
+            String selectedGift = giftsList.getSelectedValue();
+            if (selectedGift == null) {
+                JOptionPane.showMessageDialog(this, "Please select a gift to redeem!");
+                return;
+            }
+
+            int pointsCost = 0;
+            if (selectedGift.contains("50 points")) pointsCost = 50;
+            else if (selectedGift.contains("75 points")) pointsCost = 75;
+            else if (selectedGift.contains("100 points")) pointsCost = 100;
+            else if (selectedGift.contains("120 points")) pointsCost = 120;
+            else if (selectedGift.contains("150 points")) pointsCost = 150;
+            else if (selectedGift.contains("180 points")) pointsCost = 180;
+            else if (selectedGift.contains("200 points")) pointsCost = 200;
+            else if (selectedGift.contains("250 points")) pointsCost = 250;
+            else if (selectedGift.contains("300 points")) pointsCost = 300;
+            else if (selectedGift.contains("500 points")) pointsCost = 500;
+            else if (selectedGift.contains("600 points")) pointsCost = 600;
+
+            if (customer.getLoyaltyPoints() < pointsCost) {
+                JOptionPane.showMessageDialog(this, "Not enough points! You need " + pointsCost + " points.");
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                "Redeem '" + selectedGift.split(" - ")[0] + "' for " + pointsCost + " points?",
+                "Confirm Redemption", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                boolean success = CustomerController.redeemGift(customer.getId(), 
+                    selectedGift.split(" - ")[0], pointsCost);
+                
+                if (success) {
+                    customer.addLoyaltyPoints(-pointsCost);
+                    pointsLabel.setText(String.valueOf(customer.getLoyaltyPoints()));
+                    pointsInfo.setText("Available Points: " + customer.getLoyaltyPoints());
+                    
+                    giftsListModel.addElement(selectedGift.split(" - ")[0] + " (Redeemed)");
+                    int giftsCount = CustomerController.getCustomerGifts(customer.getId()).size();
+                    giftsLabel.setText(String.valueOf(giftsCount));
+                    
+                    JOptionPane.showMessageDialog(this, "Gift redeemed successfully!");
+                }
+            }
+        });
+        redeemPanel.add(redeemBtn, BorderLayout.CENTER);
+        availableGiftsPanel.add(redeemPanel, BorderLayout.SOUTH);
+
+        JPanel redeemedGiftsPanel = new JPanel(new BorderLayout());
+        redeemedGiftsPanel.setBorder(BorderFactory.createTitledBorder("Redeemed Gifts"));
+
+        giftsListModel = new DefaultListModel<>();
+        ArrayList<String> customerGifts = CustomerController.getCustomerGifts(customer.getId());
+        for (String gift : customerGifts) {
+            giftsListModel.addElement(gift + " (Redeemed)");
+        }
+
+        if (giftsListModel.isEmpty()) {
+            giftsListModel.addElement("No gifts redeemed yet");
+        }
+
+        JList<String> redeemedList = new JList<>(giftsListModel);
+        JScrollPane redeemedScroll = new JScrollPane(redeemedList);
+        redeemedGiftsPanel.add(redeemedScroll, BorderLayout.CENTER);
+
+        centerPanel.add(availableGiftsPanel);
+        centerPanel.add(redeemedGiftsPanel);
+
+        giftsPanel.add(topPanel, BorderLayout.NORTH);
+        giftsPanel.add(centerPanel, BorderLayout.CENTER);
+
+        tabbedPane.addTab("Gifts", giftsPanel);
     }
 }
