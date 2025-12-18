@@ -46,6 +46,21 @@ public class AdminDashboard extends JFrame {
     private JPanel createEmployeePanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
+        // Search Bar
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JTextField searchField = new JTextField(20);
+        JButton searchBtn = new JButton("Search");
+        JButton resetBtn = new JButton("Show All");
+
+        searchPanel.add(new JLabel("Search (ID or Name):"));
+        searchPanel.add(searchField);
+        searchPanel.add(searchBtn);
+        searchPanel.add(resetBtn);
+
+        panel.add(searchPanel, BorderLayout.NORTH);
+
+
+        // Table
         String[] columns = {"ID", "UserName", "Role", "Job Title", "Salary"};
         tableModel = new DefaultTableModel(columns, 0);
         employeeTable = new JTable(tableModel);
@@ -53,7 +68,7 @@ public class AdminDashboard extends JFrame {
         refreshEmployeeTable();
         panel.add(new JScrollPane(employeeTable), BorderLayout.CENTER);
 
-        // --- SOUTH: The Input Form ---
+        // Input Form ---
         JPanel formPanel = new JPanel(new GridLayout(2, 6)); // 2 rows, multiple cols
 
         idField = new JTextField();
@@ -74,6 +89,38 @@ public class AdminDashboard extends JFrame {
         formPanel.add(addButton); formPanel.add(deleteButton);
 
         panel.add(formPanel, BorderLayout.SOUTH);
+
+
+        // Search and Reset Button
+        searchBtn.addActionListener(e -> {
+            String query = searchField.getText().trim();
+            if (query.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a name or ID.");
+                return;
+            }
+
+            Employee foundEmp = adminController.searchEmployee(query);
+
+            if (foundEmp != null) {
+                tableModel.setRowCount(0);
+                Object[] row = {
+                        foundEmp.getId(),
+                        foundEmp.getUsername(),
+                        foundEmp.getRole(),
+                        foundEmp.getJobTitle(),
+                        foundEmp.getSalary()
+                };
+                tableModel.addRow(row);
+            } else {
+                JOptionPane.showMessageDialog(this, "Employee Not Found.");
+                refreshEmployeeTable();
+            }
+        });
+
+        resetBtn.addActionListener(e -> {
+            searchField.setText("");
+            refreshEmployeeTable();
+        });
 
         // Add Employee to the file and display it
         addButton.addActionListener(e -> {

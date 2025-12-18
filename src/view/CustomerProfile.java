@@ -75,6 +75,7 @@ public class CustomerProfile extends JFrame {
 
     private void createOrdersTab() {
         ArrayList<Order> orders = CustomerController.getCustomerOrders(customer.getId());
+        System.out.println(orders);
         String[] columns = {"Order ID", "Date", "Status", "Amount"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
