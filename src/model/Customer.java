@@ -11,6 +11,7 @@ public class Customer implements Serializable {
     private int loyaltyPoints;
     private ArrayList<String> orderIds;
     private ArrayList<String> savedOffers;
+    private ArrayList<String> redeemedGifts;
 
     public Customer(int id, String name, String phoneNumber) {
         this.id = id;
@@ -19,6 +20,7 @@ public class Customer implements Serializable {
         this.loyaltyPoints = 0;
         this.orderIds = new ArrayList<>();
         this.savedOffers = new ArrayList<>();
+        this.redeemedGifts = new ArrayList<>();
     }
 
     public int getId() { return id; }
@@ -39,6 +41,13 @@ public class Customer implements Serializable {
         }
         return savedOffers; 
     }
+    
+    public ArrayList<String> getRedeemedGifts() { 
+        if (this.redeemedGifts == null) {
+            this.redeemedGifts = new ArrayList<>();
+        }
+        return redeemedGifts; 
+    }
 
     public void setName(String name) { this.name = name; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
@@ -52,7 +61,7 @@ public class Customer implements Serializable {
     }
 
     public void addOrderId(String orderId) {
-        ArrayList<String> ids = getOrderIds(); // Use getter to ensure not null
+        ArrayList<String> ids = getOrderIds();
         if (!ids.contains(orderId)) {
             ids.add(orderId);
         }
@@ -76,6 +85,23 @@ public class Customer implements Serializable {
             savedOffers.remove(offer); 
         }
     }
+    
+    public void addRedeemedGift(String gift) { 
+        if (this.redeemedGifts == null) {
+            this.redeemedGifts = new ArrayList<>();
+        }
+        redeemedGifts.add(gift); 
+    }
+    
+    public void removeRedeemedGift(String gift) { 
+        if (this.redeemedGifts != null) {
+            redeemedGifts.remove(gift); 
+        }
+    }
+    
+    public int getGiftsCount() {
+        return getRedeemedGifts().size();
+    }
 
     @Override
     public String toString() {
@@ -83,6 +109,7 @@ public class Customer implements Serializable {
                ", Name: " + name +
                ", Phone: " + phoneNumber +
                ", Loyalty Points: " + loyaltyPoints +
-               ", Orders: " + getOrderIds().size();
+               ", Orders: " + getOrderIds().size() +
+               ", Gifts Redeemed: " + getGiftsCount();
     }
 }
